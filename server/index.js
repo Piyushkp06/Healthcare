@@ -5,6 +5,8 @@ import cookieParser from "cookie-parser"
 import cors from "cors" 
 import adminAuthRoutes from "./routes/AdminAuthRoute.js";  
 import doctorAuthRoutes from "./routes/DoctorAuthRoute.js"
+import doctorDashboardRoutes from "./routes/DoctorDashboardRoute.js";
+import adminDashboardRoutes from "./routes/AdminDashboardRoute.js";
 
 dotenv.config();
 
@@ -26,6 +28,8 @@ app.use(express.urlencoded({ extended: true }));
    
 app.use("/api/doctorAuth",doctorAuthRoutes);
 app.use("/api/adminAuth",adminAuthRoutes);
+app.use("/api/doctorDashboard",doctorDashboardRoutes);
+app.use("/api/adminDashboard",adminDashboardRoutes);
 
 
 const server = app.listen(port, () => {
