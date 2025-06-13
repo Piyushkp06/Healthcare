@@ -3,6 +3,8 @@ import dotenv from "dotenv"
 import mongoose from "mongoose"
 import cookieParser from "cookie-parser"
 import cors from "cors" 
+import adminAuthRoutes from "./routes/AdminAuthRoute.js";  
+import doctorAuthRoutes from "./routes/DoctorAuthRoute.js"
 
 dotenv.config();
 
@@ -21,6 +23,9 @@ app.use(
 app.use(cookieParser());
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
+   
+app.use("/api/doctorAuth",doctorAuthRoutes);
+app.use("/api/adminAuth",adminAuthRoutes);
 
 
 const server = app.listen(port, () => {
