@@ -5,6 +5,94 @@ import { Card, CardContent } from "./ui/card";
 import { Alert, AlertDescription } from "./ui/alert";
 import { useToast } from "../../hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { AssemblyAI } from "assemblyai";
+
+// Initialize AssemblyAI client
+const assemblyClient = new AssemblyAI({
+  apiKey: import.meta.env.VITE_ASSEMBLY_API_KEY || "",
+});
+
+// Department matching configuration
+const departmentKeywords = {
+  Cardiology: [
+    "heart",
+    "chest",
+    "cardiac",
+    "cardiovascular",
+    "blood pressure",
+    "hypertension",
+    "chest pain",
+    "palpitation",
+  ],
+  Neurology: [
+    "head",
+    "brain",
+    "nervous",
+    "headache",
+    "migraine",
+    "dizziness",
+    "seizure",
+    "memory",
+    "stroke",
+  ],
+  Orthopedics: [
+    "bone",
+    "joint",
+    "muscle",
+    "spine",
+    "back",
+    "knee",
+    "shoulder",
+    "fracture",
+    "arthritis",
+  ],
+  Ophthalmology: [
+    "eye",
+    "vision",
+    "sight",
+    "glasses",
+    "contact",
+    "blind",
+    "retina",
+    "cornea",
+  ],
+  "General Medicine": [
+    "fever",
+    "cold",
+    "flu",
+    "infection",
+    "general",
+    "checkup",
+    "routine",
+  ],
+  Pediatrics: [
+    "child",
+    "baby",
+    "infant",
+    "pediatric",
+    "growth",
+    "development",
+    "vaccination",
+  ],
+};
+
+const findMatchingDepartment = (transcript) => {
+  const lowerTranscript = transcript.toLowerCase();
+  let maxMatches = 0;
+  let matchedDepartment = "General Medicine"; // Default department
+
+  for (const [department, keywords] of Object.entries(departmentKeywords)) {
+    const matches = keywords.filter((keyword) =>
+      lowerTranscript.includes(keyword.toLowerCase())
+    ).length;
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      matchedDepartment = department;
+    }
+  }
+
+  return matchedDepartment;
+};
 
 export default function VoiceRegistrationHome() {
   const [isRecording, setIsRecording] = useState(false);
@@ -29,7 +117,10 @@ export default function VoiceRegistrationHome() {
       };
 
       mediaRecorder.onstop = async () => {
-        await processAudio(/* audioBlob */);
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/wav",
+        });
+        await processAudio(audioBlob);
 
         // Stop all tracks to release the microphone
         stream.getTracks().forEach((track) => track.stop());
@@ -56,29 +147,35 @@ export default function VoiceRegistrationHome() {
     }
   };
 
-  const processAudio = async (/* audioBlob */) => {
+  const processAudio = async (audioBlob) => {
     try {
-      // Mock API call to Whisper for speech-to-text
-      // In a real implementation, you would send the audio to the Whisper API
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API delay
-
-      // Mock transcript response
-      const mockTranscript =
-        "I'm experiencing severe headaches and dizziness for the past week. I'd like to see a neurologist as soon as possible.";
-      setTranscript(mockTranscript);
-
-      // Simulate processing and redirect
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      toast({
-        title: "Voice Processed",
-        description: "Redirecting you to complete your registration.",
+      // Transcribe audio using AssemblyAI
+      const response = await assemblyClient.transcripts.transcribe({
+        audio: audioBlob,
       });
 
-      // Redirect to frontdesk with the transcript as a query parameter
-      setTimeout(() => {
-        navigate(`/frontdesk?transcript=${encodeURIComponent(mockTranscript)}`);
-      }, 1000);
+      if (response?.text) {
+        setTranscript(response.text);
+
+        // Find matching department based on transcript
+        const matchedDepartment = findMatchingDepartment(response.text);
+
+        toast({
+          title: "Voice Processed",
+          description: `Redirecting you to ${matchedDepartment} department.`,
+        });
+
+        // Redirect to frontdesk with the transcript and matched department
+        setTimeout(() => {
+          navigate(
+            `/frontdesk?transcript=${encodeURIComponent(
+              response.text
+            )}&department=${encodeURIComponent(matchedDepartment)}`
+          );
+        }, 1000);
+      } else {
+        throw new Error("Failed to transcribe audio");
+      }
     } catch (error) {
       console.error("Error processing audio:", error);
       setIsProcessing(false);

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 // Mock data for departments and doctors
-const departments = [
+export const departments = [
   {
     id: "cardiology",
     name: "Cardiology",
