@@ -7,8 +7,11 @@ import adminAuthRoutes from "./routes/AdminAuthRoute.js";
 import doctorAuthRoutes from "./routes/DoctorAuthRoute.js";
 import doctorDashboardRoutes from "./routes/DoctorDashboardRoute.js";
 import adminDashboardRoutes from "./routes/AdminDashboardRoute.js";
+<<<<<<< HEAD
 import transcriptionRoutes from "./routes/transcription.js";
 import { createServer } from "http";
+=======
+>>>>>>> 19432826f6c0aa92d4d7a06ab4528b345ca59dd6
 
 dotenv.config();
 
@@ -28,12 +31,12 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+   
+app.use("/api/doctorAuth",doctorAuthRoutes);
+app.use("/api/adminAuth",adminAuthRoutes);
+app.use("/api/doctorDashboard",doctorDashboardRoutes);
+app.use("/api/adminDashboard",adminDashboardRoutes);
 
-app.use("/api/doctorAuth", doctorAuthRoutes);
-app.use("/api/adminAuth", adminAuthRoutes);
-app.use("/api/doctorDashboard", doctorDashboardRoutes);
-app.use("/api/adminDashboard", adminDashboardRoutes);
-app.use("/api/transcription", transcriptionRoutes);
 
 // WebSocket upgrade handler
 httpServer.on("upgrade", (request, socket, head) => {
