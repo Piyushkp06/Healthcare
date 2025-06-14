@@ -24,6 +24,8 @@ import {
   VIEW_PATIENTS_ROUTE,
   DOCTORS_BY_SPECIALIZATION_ROUTE,
   ALL_DOCTORS_ROUTE,
+  ADMIN_LOGOUT_ROUTE
+  
 } from "../../utils/constants";
 
 const mockDoctors = [

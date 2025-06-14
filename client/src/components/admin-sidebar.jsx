@@ -1,8 +1,18 @@
-import { LayoutDashboard, Users, Settings, LogOut, Menu } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  LogOut,
+  Menu
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "./ui/use-toast";
 import { useState } from "react";
+import apiClient from "../lib/api-client";
+import { ADMIN_LOGOUT_ROUTE } from "../utils/constants";
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -12,6 +22,25 @@ const navigation = [
 
 export default function AdminSidebar({ setActiveView, activeView }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await apiClient.post(ADMIN_LOGOUT_ROUTE);
+      toast({
+        title: "Logged Out",
+        description: "You have been logged out successfully.",
+      });
+      navigate("/"); // Redirect to homepage
+    } catch (error) {
+      toast({
+        title: "Logout Failed",
+        description: "Something went wrong while logging out.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -59,6 +88,7 @@ export default function AdminSidebar({ setActiveView, activeView }) {
         <Button
           variant="ghost"
           className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={handleLogout}
         >
           <LogOut className="mr-2 h-5 w-5" />
           Logout
