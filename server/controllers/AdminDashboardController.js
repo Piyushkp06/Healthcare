@@ -42,6 +42,17 @@ export const deregisterDoctor = async (req, res) => {
   }
 };
 
+export const getAllDoctors = async (req, res) => {
+  try {
+    const doctors = await Doctor.find();
+    return res.status(200).json({ doctors });
+  } catch (error) {
+    console.error(error);
+    throw new ApiError(500, "Failed to fetch doctors");
+  }
+};
+
+
 export const viewPatients = async (req, res) => {
   try {
     const { doctorId, specialization } = req.query;

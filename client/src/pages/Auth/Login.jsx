@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -11,17 +11,24 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { useToast } from "../../../hooks/use-toast";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Navbar from "../../components/navbar";
-import { Link } from "react-router-dom";
+
+// Constants
+import {
+  ADMIN_LOGIN_ROUTE,
+  DOCTOR_LOGIN_ROUTE,
+} from "../../utils/constants";
+
+// API Client
+import apiClient from "@/lib/api-client";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const role = searchParams.get("role") || "doctor";
-  const { toast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,24 +37,30 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email");
     const password = formData.get("password");
+    const doctorId = formData.get("doctorId");
+
+    const loginRoute = role === "admin" ? ADMIN_LOGIN_ROUTE : DOCTOR_LOGIN_ROUTE;
+
+    const body =
+      role === "admin"
+        ? { email, password }
+        : { email, password, doctorId };
 
     try {
-      // Mock authentication
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Redirect based on role
-      if (role === "doctor") {
-        navigate("/doctor/dashboard");
-      } else if (role === "admin") {
-        navigate("/admin/dashboard");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      toast({
-        title: "Authentication Error",
-        description: "Invalid email or password. Please try again.",
-        variant: "destructive",
+      const response = await apiClient.post(loginRoute, body, {
+        withCredentials: true,
       });
+
+      toast.success(`Login successful! Welcome ${role === "admin" ? "Admin" : "Doctor"}`);
+
+      // You can store user info to global state here if needed
+      navigate(role === "admin" ? "/admin/dashboard" : "/doctor/dashboard");
+    } catch (error) {
+      console.error("Login Error:", error);
+      toast.error(
+        error.response?.data?.message || "An error occurred during login"
+      );
+    } finally {
       setIsLoading(false);
     }
   };
@@ -62,8 +75,7 @@ export default function LoginPage() {
               {role === "admin" ? "Admin Login" : "Doctor Login"}
             </CardTitle>
             <CardDescription>
-              Enter your credentials to access the{" "}
-              {role === "admin" ? "admin" : "doctor"} dashboard
+              Enter your credentials to access the {role} dashboard
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -72,10 +84,19 @@ export default function LoginPage() {
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" name="email" type="email" required />
               </div>
+
+              {role === "doctor" && (
+                <div className="space-y-2">
+                  <Label htmlFor="doctorId">Doctor ID</Label>
+                  <Input id="doctorId" name="doctorId" type="text" required />
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" name="password" type="password" required />
               </div>
+
               <div className="text-right">
                 <Link to="#" className="text-sm text-blue-600 hover:underline">
                   Forgot password?
