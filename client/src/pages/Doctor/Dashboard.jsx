@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -17,8 +19,12 @@ import {
 import { Calendar, Clock, Stethoscope, User } from "lucide-react";
 import DoctorSidebar from "../../components/doctor-sidebar";
 import { Badge } from "../../components/ui/badge";
+import { HOST, DOCTOR_INFO_ROUTE } from "../../utils/constants";
 
 export default function DoctorDashboard() {
+  const [doctor, setDoctor] = useState(null);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [activeView, setActiveView] = useState("dashboard");
   const [appointments] = useState([
     {
       id: "a1",
@@ -81,13 +87,23 @@ export default function DoctorDashboard() {
       notes: "Advised healthy lifestyle.",
     },
   ]);
-
-  const [selectedPatient, setSelectedPatient] = useState(null);
-  const [activeView, setActiveView] = useState("dashboard");
-
   const handleSelectPatient = (patient) => {
     setSelectedPatient(patient);
   };
+
+  useEffect(() => {
+    const fetchDoctor = async () => {
+      try {
+        const res = await axios.get(`${HOST}/${DOCTOR_INFO_ROUTE}`, {
+          withCredentials: true,
+        });
+        setDoctor(res.data);
+      } catch (err) {
+        console.error("Error fetching doctor info:", err);
+      }
+    };
+    fetchDoctor();
+  }, []);
 
   const renderContent = () => {
     switch (activeView) {
@@ -388,7 +404,11 @@ export default function DoctorDashboard() {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <DoctorSidebar setActiveView={setActiveView} activeView={activeView} />
+      <DoctorSidebar
+        setActiveView={setActiveView}
+        activeView={activeView}
+        doctor={doctor}
+      />
 
       <div className="flex-1 p-6">
         <div className="flex justify-between items-center mb-6">
