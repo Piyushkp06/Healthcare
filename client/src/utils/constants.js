@@ -19,5 +19,6 @@ export const ALL_DOCTORS_ROUTE = `${ADMIN_DASHBOARD_ROUTES}/all-doctors`;
 
 export const DOCTOR_DASHBOARD_ROUTES = "api/doctorDashboard";
 export const GET_APPOINTMENTS_ROUTE = `${DOCTOR_DASHBOARD_ROUTES}/appointments`;
-export const GET_PATIENT_HISTORY_ROUTE = (patientId) =>`${DOCTOR_DASHBOARD_ROUTES}/patient-history/${patientId}`;
+export const GET_PATIENT_HISTORY_ROUTE = (patientId) =>
+  `${DOCTOR_DASHBOARD_ROUTES}/patient-history/${patientId}`;
 export const GENERATE_PRESCRIPTION_ROUTE = `${DOCTOR_DASHBOARD_ROUTES}/generate-prescription`;

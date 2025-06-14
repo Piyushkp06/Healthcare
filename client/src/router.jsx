@@ -21,6 +21,10 @@ export const router = createBrowserRouter([
         element: <Login />,
       },
       {
+        path: "doctor/login",
+        element: <Login />, // Use DoctorLogin if it's different
+      },
+      {
         path: "admin/dashboard",
         element: <AdminDashboard />,
       },

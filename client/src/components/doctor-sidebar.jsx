@@ -1,4 +1,7 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 import {
   LayoutDashboard,
   Calendar,
@@ -8,24 +11,42 @@ import {
   LogOut,
   Menu,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import { useState } from "react";
+
+import { HOST } from "../utils/constants";
 
 const navigation = [
-  { name: "Dashboard", href: "/doctor/dashboard", icon: LayoutDashboard },
-  { name: "Appointments", href: "/doctor/appointments", icon: Calendar },
-  { name: "Patients", href: "/doctor/patients", icon: Users },
-  { name: "Prescriptions", href: "/doctor/prescriptions", icon: FileText },
-  { name: "Settings", href: "/doctor/settings", icon: Settings },
+  { name: "Dashboard", key: "dashboard", icon: LayoutDashboard },
+  { name: "Appointments", key: "appointments", icon: Calendar },
+  { name: "Patients", key: "patients", icon: Users },
+  { name: "Prescriptions", key: "prescriptions", icon: FileText },
+  { name: "Settings", key: "settings", icon: Settings },
 ];
 
-export default function DoctorSidebar({ setActiveView, activeView }) {
+export default function DoctorSidebar({ setActiveView, activeView, doctor }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${HOST}/api/doctorAuth/logout`,
+        {},
+        { withCredentials: true }
+      );
+      navigate("/doctor/login");
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
+      {/* Doctor Info */}
       <div className="px-4 py-6 border-b">
         <div className="flex items-center gap-3">
           <Avatar>
@@ -33,18 +54,21 @@ export default function DoctorSidebar({ setActiveView, activeView }) {
               src="/placeholder.svg?height=40&width=40"
               alt="Doctor"
             />
-            <AvatarFallback>JW</AvatarFallback>
+            <AvatarFallback>DR</AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium">Dr. Jane Wilson</p>
-            <p className="text-sm text-gray-500">Cardiologist</p>
+            <p className="font-medium">Dr. {doctor?.name || "Loading..."}</p>
+            <p className="text-sm text-gray-500">
+              {doctor?.specialization || "Specialization..."}
+            </p>
           </div>
         </div>
       </div>
 
+      {/* Navigation */}
       <div className="flex-1 px-2 py-4 space-y-1">
         {navigation.map((item) => {
-          const isActive = activeView === item.name.toLowerCase();
+          const isActive = activeView === item.key;
           return (
             <Button
               key={item.name}
@@ -55,7 +79,7 @@ export default function DoctorSidebar({ setActiveView, activeView }) {
                   : "text-gray-700 hover:bg-gray-100"
               }`}
               onClick={() => {
-                setActiveView(item.name.toLowerCase());
+                setActiveView(item.key);
                 setOpen(false);
               }}
             >
@@ -66,9 +90,11 @@ export default function DoctorSidebar({ setActiveView, activeView }) {
         })}
       </div>
 
+      {/* Logout */}
       <div className="px-2 py-4 border-t">
         <Button
           variant="ghost"
+          onClick={handleLogout}
           className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
         >
           <LogOut className="mr-2 h-5 w-5" />

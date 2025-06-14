@@ -16,10 +16,7 @@ import { Loader2 } from "lucide-react";
 import Navbar from "../../components/navbar";
 
 // Constants
-import {
-  ADMIN_LOGIN_ROUTE,
-  DOCTOR_LOGIN_ROUTE,
-} from "../../utils/constants";
+import { ADMIN_LOGIN_ROUTE, DOCTOR_LOGIN_ROUTE } from "../../utils/constants";
 
 // API Client
 import apiClient from "@/lib/api-client";
@@ -39,19 +36,20 @@ export default function LoginPage() {
     const password = formData.get("password");
     const doctorId = formData.get("doctorId");
 
-    const loginRoute = role === "admin" ? ADMIN_LOGIN_ROUTE : DOCTOR_LOGIN_ROUTE;
+    const loginRoute =
+      role === "admin" ? ADMIN_LOGIN_ROUTE : DOCTOR_LOGIN_ROUTE;
 
     const body =
-      role === "admin"
-        ? { email, password }
-        : { email, password, doctorId };
+      role === "admin" ? { email, password } : { email, password, doctorId };
 
     try {
       const response = await apiClient.post(loginRoute, body, {
         withCredentials: true,
       });
 
-      toast.success(`Login successful! Welcome ${role === "admin" ? "Admin" : "Doctor"}`);
+      toast.success(
+        `Login successful! Welcome ${role === "admin" ? "Admin" : "Doctor"}`
+      );
 
       // You can store user info to global state here if needed
       navigate(role === "admin" ? "/admin/dashboard" : "/doctor/dashboard");

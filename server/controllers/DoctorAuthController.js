@@ -3,52 +3,61 @@ import Doctor from "../models/DoctorModel.js";
 import jwt from "jsonwebtoken";
 import { compare } from "bcrypt";
 
+// JWT expiration time: 3 days in milliseconds
 const maxAge = 3 * 24 * 60 * 60 * 1000;
 
-const validateEmail = (email) => {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email);
-};
-
-const validatePhone = (phone) => {
-  const regex = /^(\+91|91)?[6-9]\d{9}$/;
-  return regex.test(phone);
-};
+// Utilities
+const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const validatePhone = (phone) => /^(\+91|91)?[6-9]\d{9}$/.test(phone);
 
 const createToken = (email, doctorId) => {
-  return jwt.sign({ email, doctorId }, process.env.JWT_KEY, { expiresIn: maxAge });
+  return jwt.sign({ email, doctorId }, process.env.JWT_KEY, {
+    expiresIn: maxAge,
+  });
 };
 
+// Doctor Login Controller
 export const doctorLogin = async (req, res, next) => {
   try {
     const { email, phone, password, doctorId } = req.body;
+
     if (!password || !doctorId || (!email && !phone)) {
-      throw new ApiError(400, "Password, Doctor ID, and either Email or Phone are required");
+      return next(
+        new ApiError(
+          400,
+          "Password, Doctor ID, and either Email or Phone are required"
+        )
+      );
     }
 
     let doctor;
+
     if (email) {
       if (!validateEmail(email)) {
-        throw new ApiError(400, "Invalid email format");
+        return next(new ApiError(400, "Invalid email format"));
       }
       doctor = await Doctor.findOne({ email, doctorId });
     } else if (phone) {
       if (!validatePhone(phone)) {
-        throw new ApiError(400, "Invalid phone number format");
+        return next(new ApiError(400, "Invalid phone number format"));
       }
       doctor = await Doctor.findOne({ phone, doctorId });
     }
 
     if (!doctor) {
-      throw new ApiError(404, "Doctor not found with provided credentials");
+      return next(
+        new ApiError(404, "Doctor not found with provided credentials")
+      );
     }
 
-    const auth = await compare(password, doctor.password);
-    if (!auth) {
-      throw new ApiError(401, "Incorrect password");
+    const isPasswordValid = await compare(password, doctor.password);
+    if (!isPasswordValid) {
+      return next(new ApiError(401, "Incorrect password"));
     }
 
-    res.cookie("jwt", createToken(doctor.email, doctor._id), {
+    const token = createToken(doctor.email, doctor._id.toString());
+
+    res.cookie("jwt", token, {
       maxAge,
       httpOnly: true,
       secure: true,
@@ -66,16 +75,18 @@ export const doctorLogin = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.log({ error });
-    throw new ApiError(500, "Internal Server Error");
+    console.error("Login Error:", error.stack || error.message);
+    return next(new ApiError(500, "Internal Server Error during login"));
   }
 };
 
+// Get Doctor Info (Protected Route)
 export const getDoctorInfo = async (req, res, next) => {
   try {
     const doctorData = await Doctor.findById(req.doctorId);
+
     if (!doctorData) {
-      throw new ApiError(404, "Doctor not found");
+      return next(new ApiError(404, "Doctor not found"));
     }
 
     return res.status(200).json({
@@ -87,17 +98,20 @@ export const getDoctorInfo = async (req, res, next) => {
       specialization: doctorData.specialization,
     });
   } catch (error) {
-    console.log({ error });
-    throw new ApiError(500, "Internal Server Error");
+    console.error("Get Doctor Info Error:", error.stack || error.message);
+    return next(
+      new ApiError(500, "Internal Server Error while fetching doctor info")
+    );
   }
 };
 
+// Logout Controller
 export const doctorLogout = async (req, res, next) => {
   try {
     res.cookie("jwt", "", { maxAge: 1, secure: true, sameSite: "None" });
     return res.status(200).send("Doctor logged out successfully");
   } catch (error) {
-    console.log({ error });
-    throw new ApiError(500, "Internal Server Error");
+    console.error("Logout Error:", error.stack || error.message);
+    return next(new ApiError(500, "Internal Server Error during logout"));
   }
 };
