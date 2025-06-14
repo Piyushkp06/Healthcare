@@ -8,10 +8,12 @@ import doctorAuthRoutes from "./routes/DoctorAuthRoute.js";
 import doctorDashboardRoutes from "./routes/DoctorDashboardRoute.js";
 import adminDashboardRoutes from "./routes/AdminDashboardRoute.js";
 import transcriptionRoutes from "./routes/transcription.js";
+import { createServer } from "http";
 
 dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
 const port = process.env.PORT || 3001;
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -33,9 +35,24 @@ app.use("/api/doctorDashboard", doctorDashboardRoutes);
 app.use("/api/adminDashboard", adminDashboardRoutes);
 app.use("/api/transcription", transcriptionRoutes);
 
-const server = app.listen(port, () => {
+// WebSocket upgrade handler
+httpServer.on("upgrade", (request, socket, head) => {
+  const pathname = new URL(request.url, `http://${request.headers.host}`)
+    .pathname;
+
+  if (pathname === "/api/transcription/stream") {
+    transcriptionRoutes.handleUpgrade(request, socket, head);
+  } else {
+    socket.destroy();
+  }
+});
+
+// Start server
+httpServer.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
+
+// Connect to MongoDB
 mongoose
   .connect(databaseUrl)
   .then(() => console.log("DB Connected Successfully"))

@@ -17,7 +17,9 @@ import {
 } from "../../components/ui/tabs";
 import VoiceRegistration from "../../components/voice-registration";
 import PatientForm from "../../components/patient-form";
-import DepartmentSelection from "../../components/department-selection";
+import DepartmentSelection, {
+  departments,
+} from "../../components/department-selection";
 import Navbar from "../../components/navbar";
 
 export default function FrontdeskPage() {
@@ -31,19 +33,19 @@ export default function FrontdeskPage() {
   useEffect(() => {
     // If there's a transcript in the URL, we came from voice registration on the homepage
     if (transcript) {
-      // For demo purposes, let's assume the transcript mentions neurology
-      // In a real app, you'd use NLP to determine the department from the transcript
-      if (
-        transcript.toLowerCase().includes("headache") ||
-        transcript.toLowerCase().includes("neurologist")
-      ) {
-        setSelectedDepartment("Neurology");
-        setSelectedDoctor("doc3"); // ID for Dr. Michael Brown, Neurologist
+      const department = searchParams.get("department");
+      if (department) {
+        setSelectedDepartment(department);
+        // Find the first doctor in the selected department
+        const departmentData = departments.find((d) => d.name === department);
+        if (departmentData && departmentData.doctors.length > 0) {
+          setSelectedDoctor(departmentData.doctors[0].id);
+        }
         setStep("registration");
         setInitialTab("voice");
       }
     }
-  }, [transcript]);
+  }, [transcript, searchParams]);
 
   const handleDepartmentSelected = (department, doctorId) => {
     setSelectedDepartment(department);

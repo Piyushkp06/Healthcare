@@ -4,6 +4,12 @@ import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Alert, AlertDescription } from "./ui/alert";
 import { useToast } from "../../hooks/use-toast";
+import { AssemblyAI } from "assemblyai";
+
+// Initialize AssemblyAI client
+const assemblyClient = new AssemblyAI({
+  apiKey: import.meta.env.VITE_ASSEMBLY_API_KEY || "",
+});
 
 export default function VoiceRegistration({ doctorId, initialTranscript }) {
   const [isRecording, setIsRecording] = useState(false);
@@ -16,7 +22,6 @@ export default function VoiceRegistration({ doctorId, initialTranscript }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // If we have an initial transcript, process it
     if (initialTranscript) {
       processTranscript(initialTranscript);
     }
@@ -40,15 +45,13 @@ export default function VoiceRegistration({ doctorId, initialTranscript }) {
           type: "audio/wav",
         });
         await processAudio(audioBlob);
-
-        // Stop all tracks to release the microphone
         stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorder.start();
       setIsRecording(true);
     } catch (error) {
-      console.error("Error accessing microphone:", error);
+      console.error("Microphone error:", error);
       toast({
         title: "Microphone Error",
         description:
@@ -68,24 +71,23 @@ export default function VoiceRegistration({ doctorId, initialTranscript }) {
 
   const processAudio = async (audioBlob) => {
     try {
-      // Mock API call to Whisper for speech-to-text
-      // In a real implementation, you would send the audio to the Whisper API
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API delay
+      // Transcribe audio using AssemblyAI
+      const response = await assemblyClient.transcripts.transcribe({
+        audio: audioBlob,
+      });
 
-      // Mock transcript response
-      const mockTranscript =
-        "My name is John Smith. I am 45 years old. I've been experiencing chest pain and shortness of breath for the past two days. I have a history of high blood pressure.";
-      setTranscript(mockTranscript);
-
-      // Process the transcript
-      await processTranscript(mockTranscript);
+      if (response?.text) {
+        setTranscript(response.text);
+        await processTranscript(response.text);
+      } else {
+        throw new Error("Failed to transcribe audio");
+      }
     } catch (error) {
       console.error("Error processing audio:", error);
       setIsProcessing(false);
       toast({
         title: "Processing Error",
-        description:
-          "There was an error processing your recording. Please try again.",
+        description: "There was an error processing your recording.",
         variant: "destructive",
       });
     }
@@ -93,37 +95,19 @@ export default function VoiceRegistration({ doctorId, initialTranscript }) {
 
   const processTranscript = async (text) => {
     try {
-      // Mock extracting structured data from the transcript
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate processing delay
-
-      const mockExtractedData = {
-        name: "John Smith",
-        age: 45,
-        gender: "male",
-        symptoms: ["chest pain", "shortness of breath"],
-        history: ["high blood pressure"],
-      };
+      // Enhanced mock data extraction based on transcript
+      const mockExtractedData = extractInformationFromTranscript(text);
       setExtractedData(mockExtractedData);
-
-      // Mock generating prescription
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate processing delay
 
       const mockPrescription = {
         doctorId,
-        patientName: "John Smith",
-        diagnosis: "Potential angina, requires further investigation",
-        medicines: [
-          { name: "Aspirin", dosage: "75mg", frequency: "once daily" },
-          {
-            name: "Nitroglycerin",
-            dosage: "0.4mg",
-            frequency: "as needed for chest pain",
-          },
-        ],
-        notes: "Schedule ECG and stress test. Follow up in 1 week.",
+        patientName: mockExtractedData.name,
+        diagnosis: generateDiagnosis(mockExtractedData.symptoms),
+        medicines: generateMedicines(mockExtractedData.symptoms),
+        notes:
+          "Follow up recommended. Please schedule a follow-up appointment.",
       };
       setPrescriptionData(mockPrescription);
-
       setIsProcessing(false);
 
       toast({
@@ -131,15 +115,124 @@ export default function VoiceRegistration({ doctorId, initialTranscript }) {
         description: "Your voice registration has been processed successfully.",
       });
     } catch (error) {
-      console.error("Error processing transcript:", error);
+      console.error("Transcript processing error:", error);
       setIsProcessing(false);
       toast({
         title: "Processing Error",
-        description:
-          "There was an error processing your information. Please try again.",
+        description: "Could not extract information from the transcript.",
         variant: "destructive",
       });
     }
+  };
+
+  // Helper function to extract information from transcript
+  const extractInformationFromTranscript = (text) => {
+    const lowerText = text.toLowerCase();
+
+    // Simple keyword-based extraction (you can enhance this with NLP)
+    const symptoms = [];
+    const commonSymptoms = [
+      "headache",
+      "fever",
+      "cough",
+      "pain",
+      "nausea",
+      "dizziness",
+      "fatigue",
+      "chest pain",
+      "shortness of breath",
+      "sore throat",
+      "runny nose",
+      "stomach ache",
+      "back pain",
+      "joint pain",
+    ];
+
+    commonSymptoms.forEach((symptom) => {
+      if (lowerText.includes(symptom)) {
+        symptoms.push(symptom);
+      }
+    });
+
+    // Extract age (simple regex)
+    const ageMatch = text.match(/(\d{1,3})\s*years?\s*old|age\s*(\d{1,3})/i);
+    const age = ageMatch ? ageMatch[1] || ageMatch[2] : "Not specified";
+
+    // Extract gender
+    let gender = "Not specified";
+    if (lowerText.includes("male") && !lowerText.includes("female")) {
+      gender = "Male";
+    } else if (lowerText.includes("female")) {
+      gender = "Female";
+    }
+
+    // Extract name (simple approach - look for "my name is" or "I am")
+    const nameMatch = text.match(/(?:my name is|i am|i'm)\s+([a-zA-Z\s]+)/i);
+    const name = nameMatch ? nameMatch[1].trim() : "Patient";
+
+    return {
+      name: name,
+      age: age,
+      gender: gender,
+      symptoms: symptoms.length > 0 ? symptoms : ["General consultation"],
+      history: ["As mentioned in consultation"],
+    };
+  };
+
+  // Helper function to generate diagnosis based on symptoms
+  const generateDiagnosis = (symptoms) => {
+    if (
+      symptoms.includes("chest pain") ||
+      symptoms.includes("shortness of breath")
+    ) {
+      return "Potential cardiac evaluation required";
+    } else if (
+      symptoms.includes("headache") ||
+      symptoms.includes("dizziness")
+    ) {
+      return "Possible neurological consultation needed";
+    } else if (symptoms.includes("fever") || symptoms.includes("cough")) {
+      return "Upper respiratory tract infection suspected";
+    } else {
+      return "General health assessment and consultation";
+    }
+  };
+
+  // Helper function to generate medicines based on symptoms
+  const generateMedicines = (symptoms) => {
+    const medicines = [];
+
+    if (symptoms.includes("headache")) {
+      medicines.push({
+        name: "Paracetamol",
+        dosage: "500mg",
+        frequency: "twice daily",
+      });
+    }
+    if (symptoms.includes("fever")) {
+      medicines.push({
+        name: "Ibuprofen",
+        dosage: "400mg",
+        frequency: "as needed",
+      });
+    }
+    if (symptoms.includes("cough")) {
+      medicines.push({
+        name: "Cough syrup",
+        dosage: "10ml",
+        frequency: "three times daily",
+      });
+    }
+
+    if (medicines.length === 0) {
+      medicines.push({
+        name: "Multivitamin",
+        dosage: "1 tablet",
+        frequency: "once daily",
+      });
+    }
+
+    return medicines;
   };
 
   const downloadPrescription = () => {
@@ -147,18 +240,18 @@ export default function VoiceRegistration({ doctorId, initialTranscript }) {
 
     const prescriptionText = `
       MEDICAL PRESCRIPTION
-      
+
       Patient: ${prescriptionData.patientName}
       Doctor ID: ${prescriptionData.doctorId}
       Date: ${new Date().toLocaleDateString()}
-      
+
       Diagnosis: ${prescriptionData.diagnosis}
-      
+
       Medications:
       ${prescriptionData.medicines
         .map((med) => `- ${med.name} ${med.dosage}, ${med.frequency}`)
         .join("\n")}
-      
+
       Notes:
       ${prescriptionData.notes}
     `;
@@ -182,16 +275,12 @@ export default function VoiceRegistration({ doctorId, initialTranscript }) {
       <Alert className="bg-blue-50 border-blue-200">
         <AlertDescription className="flex items-center gap-2 text-blue-800">
           <svg
+            className="h-4 w-4"
             xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
             fill="none"
+            viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-4 w-4"
           >
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="16" x2="12" y2="12"></line>
