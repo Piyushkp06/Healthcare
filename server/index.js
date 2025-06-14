@@ -7,6 +7,7 @@ import adminAuthRoutes from "./routes/AdminAuthRoute.js";
 import doctorAuthRoutes from "./routes/DoctorAuthRoute.js"
 import doctorDashboardRoutes from "./routes/DoctorDashboardRoute.js";
 import adminDashboardRoutes from "./routes/AdminDashboardRoute.js";
+import appointmentRoutes from "./routes/AppointmentRoute.js";
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.use("/api/doctorAuth",doctorAuthRoutes);
 app.use("/api/adminAuth",adminAuthRoutes);
 app.use("/api/doctorDashboard",doctorDashboardRoutes);
 app.use("/api/adminDashboard",adminDashboardRoutes);
+app.use("/api/appointmentRoutes",appointmentRoutes);
 
 
 const server = app.listen(port, () => {

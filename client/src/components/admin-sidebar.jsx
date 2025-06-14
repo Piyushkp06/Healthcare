@@ -3,7 +3,11 @@ import {
   Users,
   Settings,
   LogOut,
-  Menu
+  Menu,
+  UserCircle,
+  Calendar,
+  Home,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -13,10 +17,13 @@ import { useToast } from "./ui/use-toast";
 import { useState } from "react";
 import apiClient from "../lib/api-client";
 import { ADMIN_LOGOUT_ROUTE } from "../utils/constants";
+import { cn } from "../lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "Appointments", href: "/admin/appointments", icon: Calendar },
   { name: "Doctors", href: "/admin/doctors", icon: Users },
+  { name: "Patients", href: "/admin/patients", icon: UserCircle },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

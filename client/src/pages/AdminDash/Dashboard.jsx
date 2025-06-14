@@ -24,8 +24,6 @@ import {
   VIEW_PATIENTS_ROUTE,
   DOCTORS_BY_SPECIALIZATION_ROUTE,
   ALL_DOCTORS_ROUTE,
-  ADMIN_LOGOUT_ROUTE
-  
 } from "../../utils/constants";
 
 const mockDoctors = [
@@ -67,6 +65,49 @@ const mockDoctors = [
   },
 ];
 
+const mockPatients = [
+  {
+    id: "a1",
+    name: "John Smith",
+    phone: "9876543210",
+    age: 45,
+    gender: "male",
+    symptoms: ["chest pain", "shortness of breath"],
+    doctorId: "DOC002",
+    history: [],
+  },
+  {
+    id: "a2",
+    name: "Sarah Johnson",
+    phone: "7894561230",
+    age: 32,
+    gender: "female",
+    symptoms: ["severe headache", "dizziness"],
+    doctorId: "DOC001",
+    history: [],
+  },
+  {
+    id: "a3",
+    name: "Michael Brown",
+    phone: "9012345678",
+    age: 58,
+    gender: "male",
+    symptoms: ["fatigue", "weight loss"],
+    doctorId: "DOC003",
+    history: [],
+  },
+  {
+    id: "a4",
+    name: "Emily Davis",
+    phone: "8123456789",
+    age: 27,
+    gender: "female",
+    symptoms: [],
+    doctorId: "DOC004",
+    history: [],
+  },
+];
+
 export default function AdminDashboard() {
   const [doctors, setDoctors] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,18 +120,19 @@ export default function AdminDashboard() {
     try {
       const res = await apiClient.get(ALL_DOCTORS_ROUTE);
       const dbDoctors = res.data.doctors || [];
-
-      // Filter out duplicates by doctorId
       const uniqueDoctors = [
         ...mockDoctors,
-        ...dbDoctors.filter(dbDoc => !mockDoctors.some(mock => mock.doctorId === dbDoc.doctorId)),
+        ...dbDoctors.filter(
+          (dbDoc) => !mockDoctors.some((mock) => mock.doctorId === dbDoc.doctorId)
+        ),
       ];
-
-      setDoctors(uniqueDoctors.map(doc => ({
-        ...doc,
-        patients: doc.patients || 0,
-        appointments: doc.appointments || 0,
-      })));
+      setDoctors(
+        uniqueDoctors.map((doc) => ({
+          ...doc,
+          patients: doc.patients || 0,
+          appointments: doc.appointments || 0,
+        }))
+      );
     } catch (err) {
       console.error(err);
       toast({
@@ -158,8 +200,7 @@ export default function AdminDashboard() {
 
   const fetchPatients = async () => {
     try {
-      const res = await apiClient.get(VIEW_PATIENTS_ROUTE);
-      setPatients(res.data.patients);
+      setPatients(mockPatients);
     } catch (err) {
       toast({
         title: "Error",
@@ -174,143 +215,334 @@ export default function AdminDashboard() {
   }, [activeView]);
 
   const renderContent = () => {
-    if (activeView === "dashboard") {
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <Card className="border-none shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                Total Doctors
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{doctors.length}</div>
-            </CardContent>
-          </Card>
-          <Card className="border-none shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                Total Patients Managed
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {doctors.reduce((sum, doc) => sum + doc.patients, 0)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-none shadow-lg">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                Total Appointments
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {doctors.reduce((sum, doc) => sum + doc.appointments, 0)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      );
-    }
-
-    if (activeView === "doctors") {
-      return (
-        <div>
-          <div className="flex justify-between items-center mb-6">
-            <Input
-              type="search"
-              placeholder="Search doctors..."
-              className="w-64"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Dialog open={isAddDoctorOpen} onOpenChange={setIsAddDoctorOpen}>
-              <DialogTrigger asChild>
-                <Button><UserPlus className="mr-2 h-4 w-4" /> Add Doctor</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Doctor</DialogTitle>
-                  <DialogDescription>Register a new doctor.</DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleAddDoctor} className="grid gap-4 py-4">
-                  {["name", "email", "phone", "password", "specialization", "doctorId"].map((field) => (
-                    <div className="grid gap-2" key={field}>
-                      <Label htmlFor={field}>{field[0].toUpperCase() + field.slice(1)}</Label>
-                      <Input id={field} name={field} type={field === "password" ? "password" : "text"} required />
-                    </div>
-                  ))}
-                  <div className="flex justify-end gap-2">
-                    <Button type="submit">Register</Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredDoctors.map((doctor) => (
-              <Card key={doctor.doctorId} className="border-none shadow-lg">
+    switch (activeView) {
+      case "dashboard":
+        return (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <Card className="border-none shadow-lg">
                 <CardHeader className="pb-2">
-                  <div className="flex justify-between">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback>
-                        {doctor.name.split(" ").map((n) => n[0]).join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600"
-                      onClick={() => handleRemoveDoctor(doctor.doctorId)}
-                    >
-                      Remove
-                    </Button>
-                  </div>
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Total Doctors
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardTitle className="mb-1">{doctor.name}</CardTitle>
-                  <p className="text-blue-600 text-sm mb-4">{doctor.specialization}</p>
-                  <div className="text-sm space-y-2">
-                    <div className="flex justify-between"><span className="text-gray-500">Email:</span><span>{doctor.email}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Patients:</span><span>{doctor.patients}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">Appointments:</span><span>{doctor.appointments}</span></div>
+                  <div className="text-3xl font-bold">{doctors.length}</div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-none shadow-lg">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Total Patients
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{patients.length}</div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-none shadow-lg">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Active Appointments
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">
+                    {doctors.reduce((acc, doc) => acc + (doc.appointments || 0), 0)}
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        </div>
-      );
-    }
+            </div>
 
-    if (activeView === "patients") {
-      return (
-        <div className="grid gap-4">
-          {patients.map((patient) => (
-            <Card key={patient._id} className="shadow">
-              <CardHeader><CardTitle>{patient.name}</CardTitle></CardHeader>
-              <CardContent>
-                <p>Email: {patient.email}</p>
-                <p>Doctor: {patient.assignedDoctor?.name || "Unassigned"}</p>
-                <p>Diagnosis: {patient.diagnosis}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      );
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Doctors</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {doctors.slice(0, 5).map((doctor) => (
+                      <div
+                        key={doctor.id}
+                        className="flex items-center justify-between p-2 border rounded"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <Avatar>
+                            <AvatarFallback>
+                              {doctor.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{doctor.name}</p>
+                            <p className="text-sm text-gray-500">
+                              {doctor.specialization}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-500">
+                            {doctor.patients} Patients
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {doctor.appointments} Appointments
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Patients</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {patients.slice(0, 5).map((patient) => (
+                      <div
+                        key={patient.id}
+                        className="flex items-center justify-between p-2 border rounded"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <Avatar>
+                            <AvatarFallback>
+                              {patient.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{patient.name}</p>
+                            <p className="text-sm text-gray-500">
+                              {patient.age} years, {patient.gender}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-500">
+                            {patient.symptoms.length} Symptoms
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {patient.history.length} Visits
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        );
+
+      case "doctors":
+        return (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="relative w-64">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                <Input
+                  placeholder="Search doctors..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Dialog open={isAddDoctorOpen} onOpenChange={setIsAddDoctorOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Add Doctor
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Doctor</DialogTitle>
+                    <DialogDescription>
+                      Enter the doctor's information below.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleAddDoctor} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Name</Label>
+                      <Input id="name" name="name" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password</Label>
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="specialization">Specialization</Label>
+                      <Select name="specialization" required>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select specialization" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Cardiology">Cardiology</SelectItem>
+                          <SelectItem value="Neurology">Neurology</SelectItem>
+                          <SelectItem value="Orthopedics">Orthopedics</SelectItem>
+                          <SelectItem value="General Medicine">
+                            General Medicine
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="doctorId">Doctor ID</Label>
+                      <Input
+                        id="doctorId"
+                        name="doctorId"
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full">
+                      Add Doctor
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredDoctors.map((doctor) => (
+                <Card key={doctor.id}>
+                  <CardHeader>
+                    <div className="flex items-center space-x-4">
+                      <Avatar>
+                        <AvatarFallback>
+                          {doctor.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle>{doctor.name}</CardTitle>
+                        <p className="text-sm text-gray-500">
+                          {doctor.specialization}
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-sm">
+                        <span className="font-medium">Email:</span>{" "}
+                        {doctor.email}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">Patients:</span>{" "}
+                        {doctor.patients}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">Appointments:</span>{" "}
+                        {doctor.appointments}
+                      </p>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="w-full mt-2"
+                        onClick={() => handleRemoveDoctor(doctor.doctorId)}
+                      >
+                        Remove Doctor
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "patients":
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {patients.map((patient) => (
+                <Card key={patient.id}>
+                  <CardHeader>
+                    <div className="flex items-center space-x-4">
+                      <Avatar>
+                        <AvatarFallback>
+                          {patient.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle>{patient.name}</CardTitle>
+                        <p className="text-sm text-gray-500">
+                          {patient.age} years, {patient.gender}
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-sm">
+                        <span className="font-medium">Phone:</span>{" "}
+                        {patient.phone}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">Symptoms:</span>{" "}
+                        {patient.symptoms.length > 0
+                          ? patient.symptoms.join(", ")
+                          : "None"}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">Visits:</span>{" "}
+                        {patient.history.length}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <AdminSidebar setActiveView={setActiveView} activeView={activeView} />
-      <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+    <div className="flex h-screen bg-gray-100">
+      <AdminSidebar activeView={activeView} setActiveView={setActiveView} />
+      <main className="flex-1 p-8 overflow-y-auto">
         {renderContent()}
-      </div>
+      </main>
     </div>
   );
 }

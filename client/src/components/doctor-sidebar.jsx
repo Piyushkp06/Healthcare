@@ -7,17 +7,20 @@ import {
   Settings,
   LogOut,
   Menu,
+  Home,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { useState } from "react";
+import { cn } from "../lib/utils";
 
 const navigation = [
-  { name: "Dashboard", href: "/doctor/dashboard", icon: LayoutDashboard },
+  { name: "Dashboard", href: "/doctor/dashboard", icon: Home },
   { name: "Appointments", href: "/doctor/appointments", icon: Calendar },
   { name: "Patients", href: "/doctor/patients", icon: Users },
-  { name: "Prescriptions", href: "/doctor/prescriptions", icon: FileText },
+  { name: "Prescriptions", href: "/doctor/prescriptions", icon: ClipboardList },
   { name: "Settings", href: "/doctor/settings", icon: Settings },
 ];
 
