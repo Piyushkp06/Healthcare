@@ -18,7 +18,10 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+<<<<<<< HEAD
 import { HOST } from "../utils/constants";      
+=======
+>>>>>>> 1f0119afdff2b1f2e9766c270651b2beef297dd8
 import { cn } from "../lib/utils";
 
 const navigation = [
