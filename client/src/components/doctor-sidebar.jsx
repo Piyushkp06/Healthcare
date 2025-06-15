@@ -18,8 +18,7 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-<<<<<<< HEAD
-import { useState } from "react";
+import { HOST } from "../utils/constants";      
 import { cn } from "../lib/utils";
 
 const navigation = [
@@ -28,17 +27,6 @@ const navigation = [
   { name: "Patients", href: "/doctor/patients", icon: Users },
   { name: "Prescriptions", href: "/doctor/prescriptions", icon: ClipboardList },
   { name: "Settings", href: "/doctor/settings", icon: Settings },
-=======
-
-import { HOST } from "../utils/constants";
-
-const navigation = [
-  { name: "Dashboard", key: "dashboard", icon: LayoutDashboard },
-  { name: "Appointments", key: "appointments", icon: Calendar },
-  { name: "Patients", key: "patients", icon: Users },
-  { name: "Prescriptions", key: "prescriptions", icon: FileText },
-  { name: "Settings", key: "settings", icon: Settings },
->>>>>>> 4def59976dd100ed6c8f06be0a6537b8f1ed9d22
 ];
 
 export default function DoctorSidebar({ setActiveView, activeView, doctor }) {
