@@ -7,11 +7,8 @@ import adminAuthRoutes from "./routes/AdminAuthRoute.js";
 import doctorAuthRoutes from "./routes/DoctorAuthRoute.js";
 import doctorDashboardRoutes from "./routes/DoctorDashboardRoute.js";
 import adminDashboardRoutes from "./routes/AdminDashboardRoute.js";
-<<<<<<< HEAD
 import transcriptionRoutes from "./routes/transcription.js";
 import { createServer } from "http";
-=======
->>>>>>> 19432826f6c0aa92d4d7a06ab4528b345ca59dd6
 
 dotenv.config();
 
