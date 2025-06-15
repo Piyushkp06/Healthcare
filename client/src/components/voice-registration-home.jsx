@@ -153,7 +153,6 @@ export default function VoiceRegistrationHome() {
       const response = await assemblyClient.transcripts.transcribe({
         audio: audioBlob,
       });
-      console.log("Transcription response:", response);
 
       if (response?.text) {
         setTranscript(response.text);
