@@ -6,38 +6,38 @@ import Doctor from "../models/DoctorModel.js";
 // Create a new appointment
 export const createAppointment = async (req, res, next) => {
   try {
-    const { doctor, appointmentTime, reason } = req.body;
-    const patient = req.user._id; // Get patient ID from authenticated user
+    const { patientId, doctorId, date, status, reason = "" } = req.body;
 
     // Validate doctor existence
-    const doctorExists = await Doctor.findById(doctor);
+    const doctorExists = await Doctor.findById(doctorId);
     if (!doctorExists) {
       throw new ApiError(404, "Doctor not found");
     }
 
     // Validate patient existence
-    const patientExists = await Patient.findById(patient);
+    const patientExists = await Patient.findById(patientId);
     if (!patientExists) {
       throw new ApiError(404, "Patient not found");
     }
 
     const newAppointment = new Appointment({
-      patient,
-      doctor,
-      appointmentTime,
-      reason
+      patient: patientId,
+      doctor: doctorId,
+      appointmentTime: date,
+      status,
+      reason,
     });
 
     await newAppointment.save();
 
     // Populate the appointment with patient and doctor details
     const populatedAppointment = await Appointment.findById(newAppointment._id)
-      .populate("patient", "firstName lastName email age gender")
+      .populate("patient", "name phone age gender")
       .populate("doctor", "name specialization email");
 
-    return res.status(201).json({ 
-      message: "Appointment created successfully", 
-      appointment: populatedAppointment 
+    return res.status(201).json({
+      message: "Appointment created successfully",
+      appointment: populatedAppointment,
     });
   } catch (error) {
     console.log(error);

@@ -1,4 +1,4 @@
-export const HOST = import.meta.env.VITE_SERVER_URL;
+export const HOST = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
 
 export const ADMIN_AUTH_ROUTES = "api/adminAuth";
 export const ADMIN_LOGIN_ROUTE = `${ADMIN_AUTH_ROUTES}/login`;
@@ -22,3 +22,25 @@ export const GET_APPOINTMENTS_ROUTE = `${DOCTOR_DASHBOARD_ROUTES}/appointments`;
 export const GET_PATIENT_HISTORY_ROUTE = (patientId) =>
   `${DOCTOR_DASHBOARD_ROUTES}/patient-history/${patientId}`;
 export const GENERATE_PRESCRIPTION_ROUTE = `${DOCTOR_DASHBOARD_ROUTES}/generate-prescription`;
+
+// Prescription Routes
+export const PRESCRIPTION_ROUTES = "api/prescription";
+export const GENERATE_PRESCRIPTION_API_ROUTE = `${PRESCRIPTION_ROUTES}/generate`;
+export const GET_PATIENT_PRESCRIPTIONS_ROUTE = (patientId) =>
+  `${PRESCRIPTION_ROUTES}/patient/${patientId}`;
+export const GENERATE_PRESCRIPTION_PDF_ROUTE = (prescriptionId) =>
+  `${PRESCRIPTION_ROUTES}/pdf/${prescriptionId}`;
+
+export const APPOINTMENT_ROUTES = "api/appointments";
+export const CREATE_APPOINTMENT_ROUTE = `${APPOINTMENT_ROUTES}/create-appointment`;
+export const GET_ALL_APPOINTMENTS_ROUTE = `${APPOINTMENT_ROUTES}/get-appointments`;
+export const GET_APPOINTMENT_BY_ID_ROUTE = `${APPOINTMENT_ROUTES}/get-appointment/:id`;
+export const UPDATE_APPOINTMENT_ROUTE = `${APPOINTMENT_ROUTES}/update-appointment/:id`;
+export const DELETE_APPOINTMENT_ROUTE = `${APPOINTMENT_ROUTES}/delete-appointment/:id`;
+
+export const PATIENT_ROUTES = "api/patients";
+export const REGISTER_PATIENT_ROUTE = `${PATIENT_ROUTES}/register`;
+export const GET_ALL_PATIENTS_ROUTE = `${PATIENT_ROUTES}/get-all`;
+export const GET_PATIENT_BY_ID_ROUTE = `${PATIENT_ROUTES}/get-patient/:id`;
+export const UPDATE_PATIENT_ROUTE = `${PATIENT_ROUTES}/update-patient/:id`;
+export const DELETE_PATIENT_ROUTE = `${PATIENT_ROUTES}/delete-patient/:id`;
