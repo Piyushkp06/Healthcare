@@ -49,7 +49,7 @@ export const createAppointment = async (req, res, next) => {
 // Get all appointments for admin
 export const getAdminAppointments = async (req, res, next) => {
   try {
-    const { doctor, patient } = req.query;
+    const { doctor, patient, status } = req.query;
     const filter = {};
     
     // Check if user is admin by looking up in Admin collection
@@ -59,15 +59,29 @@ export const getAdminAppointments = async (req, res, next) => {
     }
 
     // Apply filters if provided
-    if (doctor) filter.doctor = doctor;
-    if (patient) filter.patient = patient;
+    if (status && status !== 'all') {
+      filter.status = status;
+    }
 
     const appointments = await Appointment.find(filter)
       .populate("patient", "name phone age gender")
       .populate("doctor", "name specialization email")
       .sort({ appointmentTime: -1 });
 
-    return res.status(200).json({ appointments });
+    // Apply name-based filtering after population
+    let filteredAppointments = appointments;
+    if (doctor) {
+      filteredAppointments = filteredAppointments.filter(appointment => 
+        appointment.doctor.name.toLowerCase().includes(doctor.toLowerCase())
+      );
+    }
+    if (patient) {
+      filteredAppointments = filteredAppointments.filter(appointment => 
+        appointment.patient.name.toLowerCase().includes(patient.toLowerCase())
+      );
+    }
+
+    return res.status(200).json({ appointments: filteredAppointments });
   } catch (error) {
     console.log(error);
     next(new ApiError(500, "Failed to fetch appointments"));

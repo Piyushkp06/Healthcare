@@ -50,7 +50,9 @@ export default function Appointments() {
   };
 
   const filteredAppointments = appointments.filter(appointment => {
-    const matchesPatient = appointment.patient.name.toLowerCase().includes(filters.patient.toLowerCase());
+    if (!appointment?.patient) return false;
+    const patientName = (appointment.patient.name || '').toLowerCase().trim();
+    const matchesPatient = patientName.includes(filters.patient.toLowerCase());
     const matchesStatus = filters.status === "all" || appointment.status === filters.status;
     return matchesPatient && matchesStatus;
   });
@@ -152,7 +154,12 @@ export default function Appointments() {
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center min-w-[200px]">
                       <User className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="font-medium">{appointment.patient.name}</span>
+                      <span className="font-medium">
+                        {appointment?.patient ? 
+                          appointment.patient.name || 'Unknown Patient' :
+                          'Unknown Patient'
+                        }
+                      </span>
                     </div>
                     <Separator orientation="vertical" className="h-6" />
                     <div className="flex items-center min-w-[180px]">
