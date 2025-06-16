@@ -28,6 +28,7 @@ import {
 } from "../../utils/constants";
 import PrescriptionGenerator from "../../components/PrescriptionGenerator";
 import Appointments from "./Appointments";
+import Patients from "./Patients";
 
 export default function DoctorDashboard() {
   const [doctor, setDoctor] = useState(null);
@@ -769,7 +770,7 @@ export default function DoctorDashboard() {
       case "appointments":
         return <Appointments />;
       case "patients":
-        return renderPatientsView();
+        return <Patients />;
       case "prescriptions":
         return renderPrescriptionsView();
       case "settings":
