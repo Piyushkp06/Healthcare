@@ -33,7 +33,8 @@ export const GENERATE_PRESCRIPTION_PDF_ROUTE = (prescriptionId) =>
 
 export const APPOINTMENT_ROUTES = "api/appointments";
 export const CREATE_APPOINTMENT_ROUTE = `${APPOINTMENT_ROUTES}/create-appointment`;
-export const GET_ALL_APPOINTMENTS_ROUTE = `${APPOINTMENT_ROUTES}/get-appointments`;
+export const GET_ADMIN_APPOINTMENTS_ROUTE = `${APPOINTMENT_ROUTES}/admin/appointments`;
+export const GET_DOCTOR_APPOINTMENTS_ROUTE = `${APPOINTMENT_ROUTES}/doctor/appointments`;
 export const GET_APPOINTMENT_BY_ID_ROUTE = `${APPOINTMENT_ROUTES}/get-appointment/:id`;
 export const UPDATE_APPOINTMENT_ROUTE = `${APPOINTMENT_ROUTES}/update-appointment/:id`;
 export const DELETE_APPOINTMENT_ROUTE = `${APPOINTMENT_ROUTES}/delete-appointment/:id`;

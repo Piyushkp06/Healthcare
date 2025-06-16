@@ -27,6 +27,7 @@ import {
   GENERATE_PRESCRIPTION_ROUTE 
 } from "../../utils/constants";
 import PrescriptionGenerator from "../../components/PrescriptionGenerator";
+import Appointments from "./Appointments";
 
 export default function DoctorDashboard() {
   const [doctor, setDoctor] = useState(null);
@@ -766,7 +767,7 @@ export default function DoctorDashboard() {
       case "dashboard":
         return renderDashboardView();
       case "appointments":
-        return renderAppointmentsView();
+        return <Appointments />;
       case "patients":
         return renderPatientsView();
       case "prescriptions":

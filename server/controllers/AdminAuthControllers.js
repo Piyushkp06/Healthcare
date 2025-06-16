@@ -31,17 +31,13 @@ export const adminLogin = async (req, res, next) => {
       if (!validateEmail(email)) {
         throw new ApiError(400, "Invalid email format");
       }
-        //console.log("Login attempt", { email, phone, password });
       admin = await Admin.findOne({email});
     } else if (phone) {
       if (!validatePhone(phone)) {
         throw new ApiError(400, "Invalid phone number format");
       }
-        //console.log("Login attempt", { email, phone, password });
       admin = await Admin.findOne({phone});
     }
-   
-console.log("Fetched admin", admin);
 
     if (!admin) {
       throw new ApiError(404, "Admin not found with provided credentials");
@@ -52,7 +48,8 @@ console.log("Fetched admin", admin);
       throw new ApiError(401, "Incorrect password");
     }
 
-    res.cookie("jwt", createToken(admin.email, admin._id), {
+    const token = createToken(admin.email, admin._id);
+    res.cookie("jwt", token, {
       maxAge,
       httpOnly: true,
       secure: true,

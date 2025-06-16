@@ -25,6 +25,7 @@ import {
   DOCTORS_BY_SPECIALIZATION_ROUTE,
   ALL_DOCTORS_ROUTE,
 } from "../../utils/constants";
+import Appointments from "../Admin/Appointments";
 
 const mockDoctors = [
   {
@@ -249,9 +250,7 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
-                    {doctors.reduce((acc, doc) => acc + (doc.appointments || 0), 0)}
-                  </div>
+                  <div className="text-3xl font-bold">0</div>
                 </CardContent>
               </Card>
             </div>
@@ -344,7 +343,19 @@ export default function AdminDashboard() {
 
       case "doctors":
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Doctors</h2>
+              <Dialog open={isAddDoctorOpen} onOpenChange={setIsAddDoctorOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Add Doctor
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </div>
+
             <div className="flex justify-between items-center">
               <div className="relative w-64">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
@@ -355,82 +366,6 @@ export default function AdminDashboard() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Dialog open={isAddDoctorOpen} onOpenChange={setIsAddDoctorOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Add Doctor
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add New Doctor</DialogTitle>
-                    <DialogDescription>
-                      Enter the doctor's information below.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleAddDoctor} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Name</Label>
-                      <Input id="name" name="name" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <Input
-                        id="password"
-                        name="password"
-                        type="password"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="specialization">Specialization</Label>
-                      <Select name="specialization" required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select specialization" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Cardiology">Cardiology</SelectItem>
-                          <SelectItem value="Neurology">Neurology</SelectItem>
-                          <SelectItem value="Orthopedics">Orthopedics</SelectItem>
-                          <SelectItem value="General Medicine">
-                            General Medicine
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="doctorId">Doctor ID</Label>
-                      <Input
-                        id="doctorId"
-                        name="doctorId"
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full">
-                      Add Doctor
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -486,10 +421,11 @@ export default function AdminDashboard() {
 
       case "patients":
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Patients</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {patients.map((patient) => (
-                <Card key={patient.id}>
+                <Card key={patient.id || patient._id}>
                   <CardHeader>
                     <div className="flex items-center space-x-4">
                       <Avatar>
@@ -532,15 +468,18 @@ export default function AdminDashboard() {
           </div>
         );
 
+      case "appointments":
+        return <Appointments />;
+
       default:
         return null;
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <AdminSidebar activeView={activeView} setActiveView={setActiveView} />
-      <main className="flex-1 p-8 overflow-y-auto">
+    <div className="flex h-screen bg-gray-50">
+      <AdminSidebar setActiveView={setActiveView} activeView={activeView} />
+      <main className="flex-1 overflow-y-auto p-8">
         {renderContent()}
       </main>
     </div>
