@@ -19,12 +19,12 @@ import {
 import { Calendar, Clock, Stethoscope, User } from "lucide-react";
 import DoctorSidebar from "../../components/doctor-sidebar";
 import { Badge } from "../../components/ui/badge";
-import { 
-  HOST, 
-  DOCTOR_INFO_ROUTE, 
+import {
+  HOST,
+  DOCTOR_INFO_ROUTE,
   GET_APPOINTMENTS_ROUTE,
   GET_PATIENT_HISTORY_ROUTE,
-  GENERATE_PRESCRIPTION_ROUTE 
+  GENERATE_PRESCRIPTION_ROUTE,
 } from "../../utils/constants";
 import PrescriptionGenerator from "../../components/PrescriptionGenerator";
 import Appointments from "./Appointments";
@@ -40,7 +40,7 @@ export default function DoctorDashboard() {
   const [newMedicine, setNewMedicine] = useState({
     name: "",
     dosage: "",
-    frequency: ""
+    frequency: "",
   });
   const [prescriptionNotes, setPrescriptionNotes] = useState("");
 
@@ -125,7 +125,7 @@ export default function DoctorDashboard() {
       );
       setSelectedPatient({
         ...patient,
-        prescriptions: res.data.prescriptions
+        prescriptions: res.data.prescriptions,
       });
     } catch (err) {
       console.error("Error fetching patient history:", err);
@@ -135,9 +135,9 @@ export default function DoctorDashboard() {
 
   const handleAddSymptom = () => {
     if (newSymptom.trim()) {
-      setSelectedPatient(prev => ({
+      setSelectedPatient((prev) => ({
         ...prev,
-        symptoms: [...(prev.symptoms || []), newSymptom.trim()]
+        symptoms: [...(prev.symptoms || []), newSymptom.trim()],
       }));
       setNewSymptom("");
     }
@@ -145,9 +145,9 @@ export default function DoctorDashboard() {
 
   const handleAddMedicine = () => {
     if (newMedicine.name.trim()) {
-      setSelectedPatient(prev => ({
+      setSelectedPatient((prev) => ({
         ...prev,
-        medications: [...(prev.medications || []), newMedicine]
+        medications: [...(prev.medications || []), newMedicine],
       }));
       setNewMedicine({ name: "", dosage: "", frequency: "" });
     }
@@ -162,11 +162,11 @@ export default function DoctorDashboard() {
           date: new Date().toISOString(),
           symptoms: selectedPatient.symptoms,
           medicines: selectedPatient.medications,
-          notes: prescriptionNotes
+          notes: prescriptionNotes,
         };
-        setSelectedPatient(prev => ({
+        setSelectedPatient((prev) => ({
           ...prev,
-          prescriptions: [newPrescription, ...(prev.prescriptions || [])]
+          prescriptions: [newPrescription, ...(prev.prescriptions || [])],
         }));
         setPrescriptionNotes("");
         return;
@@ -176,12 +176,12 @@ export default function DoctorDashboard() {
       const prescriptionData = {
         patientId: selectedPatient._id,
         symptoms: selectedPatient.symptoms,
-        medicines: selectedPatient.medications.map(med => ({
+        medicines: selectedPatient.medications.map((med) => ({
           name: med.name,
           dosage: med.dosage,
-          frequency: med.frequency
+          frequency: med.frequency,
         })),
-        notes: prescriptionNotes
+        notes: prescriptionNotes,
       };
 
       const res = await axios.post(
@@ -191,9 +191,9 @@ export default function DoctorDashboard() {
       );
 
       if (res.data.prescription) {
-        setSelectedPatient(prev => ({
+        setSelectedPatient((prev) => ({
           ...prev,
-          prescriptions: [res.data.prescription, ...(prev.prescriptions || [])]
+          prescriptions: [res.data.prescription, ...(prev.prescriptions || [])],
         }));
         setPrescriptionNotes("");
         setError(null);
@@ -259,9 +259,7 @@ export default function DoctorDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {appointments.length}
-            </div>
+            <div className="text-3xl font-bold">{appointments.length}</div>
           </CardContent>
         </Card>
 
@@ -347,9 +345,7 @@ export default function DoctorDashboard() {
                     <TabsTrigger value="patient-details">
                       Patient Details
                     </TabsTrigger>
-                    <TabsTrigger value="prescription">
-                      Prescription
-                    </TabsTrigger>
+                    <TabsTrigger value="prescription">Prescription</TabsTrigger>
                   </TabsList>
                   <TabsContent value="patient-details">
                     <div className="space-y-4">
@@ -357,13 +353,11 @@ export default function DoctorDashboard() {
                         <h3 className="font-medium mb-1">Symptoms</h3>
                         <div className="flex flex-wrap gap-2">
                           {selectedPatient.symptoms?.length > 0 ? (
-                            selectedPatient.symptoms.map(
-                              (symptom, index) => (
-                                <Badge key={index} variant="secondary">
-                                  {symptom}
-                                </Badge>
-                              )
-                            )
+                            selectedPatient.symptoms.map((symptom, index) => (
+                              <Badge key={index} variant="secondary">
+                                {symptom}
+                              </Badge>
+                            ))
                           ) : (
                             <p className="text-gray-500 text-sm">
                               No symptoms recorded.
@@ -372,9 +366,7 @@ export default function DoctorDashboard() {
                         </div>
                       </div>
                       <div>
-                        <h3 className="font-medium mb-1">
-                          Medical History
-                        </h3>
+                        <h3 className="font-medium mb-1">Medical History</h3>
                         <p className="text-gray-700 text-sm">
                           {selectedPatient.medicalHistory}
                         </p>
@@ -414,22 +406,29 @@ export default function DoctorDashboard() {
                   <TabsContent value="prescription">
                     <div className="space-y-6">
                       <div className="bg-white p-6 rounded-lg shadow">
-                        <h3 className="text-lg font-semibold mb-4">Generate New Prescription</h3>
-                        <form className="space-y-4" onSubmit={(e) => {
-                          e.preventDefault();
-                          handleGeneratePrescription();
-                        }}>
+                        <h3 className="text-lg font-semibold mb-4">
+                          Generate New Prescription
+                        </h3>
+                        <form
+                          className="space-y-4"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            handleGeneratePrescription();
+                          }}
+                        >
                           {/* Symptoms Section */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               Symptoms
                             </label>
                             <div className="flex flex-wrap gap-2 mb-2">
-                              {selectedPatient.symptoms?.map((symptom, index) => (
-                                <Badge key={index} variant="secondary">
-                                  {symptom}
-                                </Badge>
-                              ))}
+                              {selectedPatient.symptoms?.map(
+                                (symptom, index) => (
+                                  <Badge key={index} variant="secondary">
+                                    {symptom}
+                                  </Badge>
+                                )
+                              )}
                             </div>
                             <div className="flex gap-2">
                               <Input
@@ -450,90 +449,130 @@ export default function DoctorDashboard() {
                               Medicines
                             </label>
                             <div className="space-y-3">
-                              {selectedPatient.medications?.map((medication, index) => (
-                                <div key={index} className="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded-lg">
-                                  <Input
-                                    placeholder="Medicine name"
-                                    value={typeof medication === 'string' ? medication : medication.name || medication}
-                                    onChange={(e) => {
-                                      const newMeds = [...selectedPatient.medications];
-                                      if (typeof medication === 'string') {
-                                        newMeds[index] = {
-                                          name: e.target.value,
-                                          dosage: '',
-                                          frequency: ''
-                                        };
-                                      } else {
-                                        newMeds[index].name = e.target.value;
+                              {selectedPatient.medications?.map(
+                                (medication, index) => (
+                                  <div
+                                    key={index}
+                                    className="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded-lg"
+                                  >
+                                    <Input
+                                      placeholder="Medicine name"
+                                      value={
+                                        typeof medication === "string"
+                                          ? medication
+                                          : medication.name || medication
                                       }
-                                      setSelectedPatient(prev => ({
-                                        ...prev,
-                                        medications: newMeds
-                                      }));
-                                    }}
-                                    className="col-span-1"
-                                  />
-                                  <Input
-                                    placeholder="Dosage"
-                                    value={typeof medication === 'string' ? '' : medication.dosage}
-                                    onChange={(e) => {
-                                      const newMeds = [...selectedPatient.medications];
-                                      if (typeof medication === 'string') {
-                                        newMeds[index] = {
-                                          name: medication,
-                                          dosage: e.target.value,
-                                          frequency: ''
-                                        };
-                                      } else {
-                                        newMeds[index].dosage = e.target.value;
+                                      onChange={(e) => {
+                                        const newMeds = [
+                                          ...selectedPatient.medications,
+                                        ];
+                                        if (typeof medication === "string") {
+                                          newMeds[index] = {
+                                            name: e.target.value,
+                                            dosage: "",
+                                            frequency: "",
+                                          };
+                                        } else {
+                                          newMeds[index].name = e.target.value;
+                                        }
+                                        setSelectedPatient((prev) => ({
+                                          ...prev,
+                                          medications: newMeds,
+                                        }));
+                                      }}
+                                      className="col-span-1"
+                                    />
+                                    <Input
+                                      placeholder="Dosage"
+                                      value={
+                                        typeof medication === "string"
+                                          ? ""
+                                          : medication.dosage
                                       }
-                                      setSelectedPatient(prev => ({
-                                        ...prev,
-                                        medications: newMeds
-                                      }));
-                                    }}
-                                    className="col-span-1"
-                                  />
-                                  <Input
-                                    placeholder="Frequency"
-                                    value={typeof medication === 'string' ? '' : medication.frequency}
-                                    onChange={(e) => {
-                                      const newMeds = [...selectedPatient.medications];
-                                      if (typeof medication === 'string') {
-                                        newMeds[index] = {
-                                          name: medication,
-                                          dosage: '',
-                                          frequency: e.target.value
-                                        };
-                                      } else {
-                                        newMeds[index].frequency = e.target.value;
+                                      onChange={(e) => {
+                                        const newMeds = [
+                                          ...selectedPatient.medications,
+                                        ];
+                                        if (typeof medication === "string") {
+                                          newMeds[index] = {
+                                            name: medication,
+                                            dosage: e.target.value,
+                                            frequency: "",
+                                          };
+                                        } else {
+                                          newMeds[index].dosage =
+                                            e.target.value;
+                                        }
+                                        setSelectedPatient((prev) => ({
+                                          ...prev,
+                                          medications: newMeds,
+                                        }));
+                                      }}
+                                      className="col-span-1"
+                                    />
+                                    <Input
+                                      placeholder="Frequency"
+                                      value={
+                                        typeof medication === "string"
+                                          ? ""
+                                          : medication.frequency
                                       }
-                                      setSelectedPatient(prev => ({
-                                        ...prev,
-                                        medications: newMeds
-                                      }));
-                                    }}
-                                    className="col-span-1"
-                                  />
-                                </div>
-                              ))}
+                                      onChange={(e) => {
+                                        const newMeds = [
+                                          ...selectedPatient.medications,
+                                        ];
+                                        if (typeof medication === "string") {
+                                          newMeds[index] = {
+                                            name: medication,
+                                            dosage: "",
+                                            frequency: e.target.value,
+                                          };
+                                        } else {
+                                          newMeds[index].frequency =
+                                            e.target.value;
+                                        }
+                                        setSelectedPatient((prev) => ({
+                                          ...prev,
+                                          medications: newMeds,
+                                        }));
+                                      }}
+                                      className="col-span-1"
+                                    />
+                                  </div>
+                                )
+                              )}
                               <div className="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded-lg">
                                 <Input
                                   placeholder="Medicine name"
                                   value={newMedicine.name}
-                                  onChange={(e) => setNewMedicine(prev => ({ ...prev, name: e.target.value }))}
+                                  onChange={(e) =>
+                                    setNewMedicine((prev) => ({
+                                      ...prev,
+                                      name: e.target.value,
+                                    }))
+                                  }
                                   className="col-span-1"
                                 />
                                 <Input
                                   placeholder="Dosage"
                                   value={newMedicine.dosage}
-                                  onChange={(e) => setNewMedicine(prev => ({ ...prev, dosage: e.target.value }))}
+                                  onChange={(e) =>
+                                    setNewMedicine((prev) => ({
+                                      ...prev,
+                                      dosage: e.target.value,
+                                    }))
+                                  }
                                   className="col-span-1"
                                 />
                                 <Input
                                   placeholder="Frequency"
                                   value={newMedicine.frequency}
-                                  onChange={(e) => setNewMedicine(prev => ({ ...prev, frequency: e.target.value }))}
+                                  onChange={(e) =>
+                                    setNewMedicine((prev) => ({
+                                      ...prev,
+                                      frequency: e.target.value,
+                                    }))
+                                  }
                                   className="col-span-1"
                                 />
                               </div>
@@ -556,7 +595,9 @@ export default function DoctorDashboard() {
                             <Textarea
                               placeholder="Enter any additional notes or instructions"
                               value={prescriptionNotes}
-                              onChange={(e) => setPrescriptionNotes(e.target.value)}
+                              onChange={(e) =>
+                                setPrescriptionNotes(e.target.value)
+                              }
                               className="min-h-[100px]"
                             />
                           </div>
@@ -644,7 +685,9 @@ export default function DoctorDashboard() {
                 </div>
               </div>
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-500">Recent Symptoms</h4>
+                <h4 className="text-sm font-medium text-gray-500">
+                  Recent Symptoms
+                </h4>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {appointment.symptoms?.map((symptom, index) => (
                     <Badge key={index} variant="secondary">
@@ -663,12 +706,51 @@ export default function DoctorDashboard() {
   const renderPrescriptionsView = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Prescriptions</h2>
+
+      {/* Patient Selection */}
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="text-lg font-semibold mb-4">Select Patient</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {appointments.map((appointment) => (
+            <Card
+              key={appointment.id}
+              className={`cursor-pointer transition-colors ${
+                selectedPatient?.id === appointment.id
+                  ? "border-blue-500 bg-blue-50"
+                  : ""
+              }`}
+              onClick={() => handleSelectPatient(appointment)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-blue-100 p-3 rounded-full">
+                    <User className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">{appointment.patientName}</h3>
+                    <p className="text-sm text-gray-500">
+                      {appointment.age} years, {appointment.gender}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Prescription Generator */}
-        <PrescriptionGenerator
-          patient={selectedPatient}
-          onPrescriptionGenerated={handleGeneratePrescription}
-        />
+        {selectedPatient ? (
+          <PrescriptionGenerator
+            patient={selectedPatient}
+            onPrescriptionGenerated={handleGeneratePrescription}
+          />
+        ) : (
+          <div className="text-center text-gray-500 py-8">
+            Select a patient to generate a prescription
+          </div>
+        )}
 
         {/* Previous Prescriptions */}
         <div className="space-y-4">
@@ -685,7 +767,9 @@ export default function DoctorDashboard() {
                   <CardContent>
                     <div className="space-y-4">
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500">Symptoms</h4>
+                        <h4 className="text-sm font-medium text-gray-500">
+                          Symptoms
+                        </h4>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {prescription.symptoms?.map((symptom, idx) => (
                             <Badge key={idx} variant="secondary">
@@ -695,13 +779,18 @@ export default function DoctorDashboard() {
                         </div>
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500">Medications</h4>
+                        <h4 className="text-sm font-medium text-gray-500">
+                          Medications
+                        </h4>
                         <div className="space-y-2 mt-2">
                           {prescription.medicines?.map((medicine, idx) => (
                             <div key={idx} className="text-sm">
-                              <span className="font-medium">{medicine.name}</span>
+                              <span className="font-medium">
+                                {medicine.name}
+                              </span>
                               <span className="text-gray-500">
-                                {" "}- {medicine.dosage} ({medicine.frequency})
+                                {" "}
+                                - {medicine.dosage} ({medicine.frequency})
                               </span>
                             </div>
                           ))}
@@ -709,8 +798,12 @@ export default function DoctorDashboard() {
                       </div>
                       {prescription.notes && (
                         <div>
-                          <h4 className="text-sm font-medium text-gray-500">Notes</h4>
-                          <p className="text-sm text-gray-700 mt-1">{prescription.notes}</p>
+                          <h4 className="text-sm font-medium text-gray-500">
+                            Notes
+                          </h4>
+                          <p className="text-sm text-gray-700 mt-1">
+                            {prescription.notes}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -742,7 +835,9 @@ export default function DoctorDashboard() {
               <p className="mt-1">{doctor?.name || "Loading..."}</p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-500">Specialization</h3>
+              <h3 className="text-sm font-medium text-gray-500">
+                Specialization
+              </h3>
               <p className="mt-1">{doctor?.specialization || "Loading..."}</p>
             </div>
             <div>
@@ -787,9 +882,7 @@ export default function DoctorDashboard() {
         activeView={activeView}
         doctor={doctor}
       />
-      <main className="flex-1 overflow-y-auto p-8">
-        {renderContent()}
-      </main>
+      <main className="flex-1 overflow-y-auto p-8">{renderContent()}</main>
     </div>
   );
 }

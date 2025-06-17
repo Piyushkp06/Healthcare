@@ -45,3 +45,15 @@ export const GET_ALL_PATIENTS_ROUTE = `${PATIENT_ROUTES}/get-all`;
 export const GET_PATIENT_BY_ID_ROUTE = `${PATIENT_ROUTES}/get-patient/:id`;
 export const UPDATE_PATIENT_ROUTE = `${PATIENT_ROUTES}/update-patient/:id`;
 export const DELETE_PATIENT_ROUTE = `${PATIENT_ROUTES}/delete-patient/:id`;
+
+// FastAPI Backend Configuration
+export const FASTAPI_HOST = "http://127.0.0.1:8000";
+
+// API Routes
+export const PROCESS_CASE_API_ROUTE = "/process_case/";
+
+// Full endpoint URLs
+export const PROCESS_CASE_URL = `${FASTAPI_HOST}${PROCESS_CASE_API_ROUTE}`;
+
+// Request timeout (in milliseconds)
+export const API_TIMEOUT = 60000; // 60 seconds for ML processing
