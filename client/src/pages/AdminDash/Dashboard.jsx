@@ -26,6 +26,7 @@ import {
   ALL_DOCTORS_ROUTE,
 } from "../../utils/constants";
 import Appointments from "../Admin/Appointments";
+import Patients from "../Admin/Patients";
 
 const mockDoctors = [
   {
@@ -326,10 +327,10 @@ export default function AdminDashboard() {
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-gray-500">
-                            {patient.symptoms.length} Symptoms
+                            {patient.symptoms?.length || 0} Symptoms
                           </p>
                           <p className="text-sm text-gray-500">
-                            {patient.history.length} Visits
+                            {patient.history?.length || 0} Visits
                           </p>
                         </div>
                       </div>
@@ -420,53 +421,7 @@ export default function AdminDashboard() {
         );
 
       case "patients":
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Patients</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {patients.map((patient) => (
-                <Card key={patient.id || patient._id}>
-                  <CardHeader>
-                    <div className="flex items-center space-x-4">
-                      <Avatar>
-                        <AvatarFallback>
-                          {patient.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <CardTitle>{patient.name}</CardTitle>
-                        <p className="text-sm text-gray-500">
-                          {patient.age} years, {patient.gender}
-                        </p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p className="text-sm">
-                        <span className="font-medium">Phone:</span>{" "}
-                        {patient.phone}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Symptoms:</span>{" "}
-                        {patient.symptoms.length > 0
-                          ? patient.symptoms.join(", ")
-                          : "None"}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Visits:</span>{" "}
-                        {patient.history.length}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        );
+        return <Patients />;
 
       case "appointments":
         return <Appointments />;
