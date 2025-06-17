@@ -1,46 +1,47 @@
-
 import os
 from dotenv import load_dotenv
+
+# Load environment variables from .env file
 load_dotenv()
-import os
+
 class Config:
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # Set your Gemini API key here
-    # Google Custom Search API key (get from Google Cloud Console)
-    SEARCH_API_KEY = os.getenv("SEARCH_API_KEY")  # Set your Google Custom Search API key here
-    # Google Custom Search API endpoint (usually this)
-    SEARCH_API_ENDPOINT = "https://www.googleapis.com/customsearch/v1"
-    # Your Custom Search Engine ID (get from Google Custom Search Engine dashboard)
-    SEARCH_ENGINE_ID = "638372d386d684c81"
-    # Maximum number of search results to process
-    MAX_SEARCH_RESULTS = 1
+    # API Keys
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    SEARCH_API_KEY = os.getenv('SEARCH_API_KEY')
+    SEARCH_API_ENDPOINT = os.getenv('SEARCH_API_ENDPOINT')
+
+    # Trusted Medical Domains
     TRUSTED_MEDICAL_DOMAINS = [
-        "pubmed.ncbi.nlm.nih.gov",
-        "clinicaltrials.gov",
-        "who.int",
-        "cdc.gov",
-        "nih.gov",
-        "mayoclinic.org",
-        "nhs.uk",
-        "indianmedguru.com", # Example: Adding a hypothetical Indian medical domain
-        "icmr.nic.in", # Indian Council of Medical Research
-        "cdsco.gov.in", # Central Drugs Standard Control Organization (India)
-        # Add more highly reputable, evidence-based medical sources relevant to India and globally
+        'mayoclinic.org',
+        'webmd.com',
+        'medlineplus.gov',
+        'healthline.com',
+        'who.int',
+        'cdc.gov',
+        'nih.gov'
     ]
 
-    # NLP Model Paths (Placeholder - you'd need to train/fine-tune these)
-    # BioBERT, PubMedBERT, ClinicalBERT are good starting points for medical NLP.
-    # For actual usage, you'd download these models or specify their Hugging Face paths.
-    NER_MODEL_PATH = "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract"  # Example: A pre-trained biomedical BERT for NER
-    REL_MODEL_PATH = "path/to/your/relation_extraction_model" # This would be a custom trained model
-    SUMMARIZER_MODEL_NAME = "t5-small" # A generic summarizer, might need fine-tuning for medical text
+    # Model Paths
+    NER_MODEL_PATH = os.getenv('NER_MODEL_PATH', 'models/ner_model')
+    REL_MODEL_PATH = os.getenv('REL_MODEL_PATH', 'models/rel_model')
+    MEDICAL_ONTOLOGY_PATH = os.path.join(os.path.dirname(__file__), 'data', 'medical_ontology.json')
+    KNOWLEDGE_GRAPH_DB_PATH = os.getenv('KNOWLEDGE_GRAPH_DB_PATH', 'data/knowledge_graph.db')
 
-    # Knowledge Graph
-    KNOWLEDGE_GRAPH_DB_PATH = "knowledge_graph.db" # Using SQLite for simplicity, Neo4j for larger KGs
-    MEDICAL_ONTOLOGY_PATH = "data/medical_ontology.json" # Or API endpoint for UMLS, SNOMED CT, etc.
+    # Summarizer Configuration
+    SUMMARIZER_MODEL_NAME = os.getenv('SUMMARIZER_MODEL_NAME', 'gpt-3.5-turbo')
 
-    # Data Limits (for crawling/processing)
-    MAX_SEARCH_RESULTS = 10
-    MAX_CRAWL_DEPTH = 1 # Keep low for safety and resource management
+    # Logging Configuration
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+    LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    LOG_FILE = os.getenv('LOG_FILE', 'app.log')
 
-    # Logging
-    LOG_LEVEL = "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+    # Search Configuration
+    MAX_SEARCH_RESULTS = int(os.getenv('MAX_SEARCH_RESULTS', 10))
+    SEARCH_TIMEOUT = int(os.getenv('SEARCH_TIMEOUT', 30))
+
+    # API Configuration
+    API_HOST = os.getenv('API_HOST', '0.0.0.0')
+    API_PORT = int(os.getenv('API_PORT', 5000))
+    DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+
+    SEARCH_ENGINE_ID = os.getenv('SEARCH_ENGINE_ID', 'your_default_engine_id')

@@ -33,6 +33,22 @@ export const router = createBrowserRouter([
         element: <DoctorDashboard />,
       },
       {
+        path: "doctor/appointments",
+        element: <DoctorDashboard />,
+      },
+      {
+        path: "doctor/patients",
+        element: <DoctorDashboard />,
+      },
+      {
+        path: "doctor/prescriptions",
+        element: <DoctorDashboard />,
+      },
+      {
+        path: "doctor/settings",
+        element: <DoctorDashboard />,
+      },
+      {
         path: "frontdesk",
         element: <FrontdeskPage />,
       },

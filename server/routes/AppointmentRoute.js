@@ -1,7 +1,8 @@
 import { Router } from "express";
 import {
   createAppointment,
-  getAppointments,
+  getAdminAppointments,
+  getDoctorAppointments,
   getAppointmentById,
   updateAppointment,
   deleteAppointment
@@ -10,8 +11,9 @@ import { verifyToken } from "../middlewares/AuthMiddleware.js";
 
 const appointmentRoutes = Router();
 
+appointmentRoutes.get("/admin/appointments", verifyToken, getAdminAppointments);
+appointmentRoutes.get("/doctor/appointments", verifyToken, getDoctorAppointments);
 appointmentRoutes.post("/create-appointment", verifyToken, createAppointment);
-appointmentRoutes.get("/get-appointments", verifyToken, getAppointments);
 appointmentRoutes.get("/get-appointment/:id", verifyToken, getAppointmentById);
 appointmentRoutes.put("/update-appointment/:id", verifyToken, updateAppointment);
 appointmentRoutes.delete("/delete-appointment/:id", verifyToken, deleteAppointment);

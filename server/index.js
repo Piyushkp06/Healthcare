@@ -8,6 +8,9 @@ import doctorAuthRoutes from "./routes/DoctorAuthRoute.js";
 import doctorDashboardRoutes from "./routes/DoctorDashboardRoute.js";
 import adminDashboardRoutes from "./routes/AdminDashboardRoute.js";
 import transcriptionRoutes from "./routes/transcription.js";
+import patientRoutes from "./routes/PatientRoute.js";
+import prescriptionRoutes from "./routes/prescription.routes.js";
+import appointmentRoutes from "./routes/AppointmentRoute.js";
 import { createServer } from "http";
 
 dotenv.config();
@@ -17,23 +20,27 @@ const httpServer = createServer(app);
 const port = process.env.PORT || 3001;
 const databaseUrl = process.env.DATABASE_URL;
 
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
 app.use(
   cors({
-    origin: [process.env.ORIGIN],
+    origin: process.env.ORIGIN || "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-   
-app.use("/api/doctorAuth",doctorAuthRoutes);
-app.use("/api/adminAuth",adminAuthRoutes);
-app.use("/api/doctorDashboard",doctorDashboardRoutes);
-app.use("/api/adminDashboard",adminDashboardRoutes);
-
+// Routes
+app.use("/api/adminAuth", adminAuthRoutes);
+app.use("/api/doctorAuth", doctorAuthRoutes);
+app.use("/api/doctorDashboard", doctorDashboardRoutes);
+app.use("/api/adminDashboard", adminDashboardRoutes);
+app.use("/api/transcription", transcriptionRoutes);
+app.use("/api/patients", patientRoutes);
+app.use("/api/prescription", prescriptionRoutes);
+app.use("/api/appointments", appointmentRoutes);
 
 // WebSocket upgrade handler
 httpServer.on("upgrade", (request, socket, head) => {
@@ -49,11 +56,15 @@ httpServer.on("upgrade", (request, socket, head) => {
 
 // Start server
 httpServer.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+  console.log(`Server is running on port ${port}`);
 });
 
 // Connect to MongoDB
 mongoose
   .connect(databaseUrl)
-  .then(() => console.log("DB Connected Successfully"))
-  .catch((err) => console.log(err.message));
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((error) => {
+    console.error("MongoDB connection error:", error);
+  });

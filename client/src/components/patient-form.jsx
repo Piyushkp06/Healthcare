@@ -6,6 +6,8 @@ import { Textarea } from "./ui/textarea";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Download, Loader2 } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
+import apiClient from "../lib/api-client";
+import { REGISTER_PATIENT_ROUTE, CREATE_APPOINTMENT_ROUTE } from "../utils/constants";
 
 export default function PatientForm({ doctorId }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,8 +32,19 @@ export default function PatientForm({ doctorId }) {
     };
 
     try {
-      // Mock API call to submit patient data
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API delay
+      // Register patient
+      const patientResponse = await apiClient.post(REGISTER_PATIENT_ROUTE, patientData);
+      const patientId = patientResponse.data.patient._id;
+
+      // Create appointment
+      const appointmentData = {
+        patientId,
+        doctorId,
+        date: new Date().toISOString(),
+        status: "scheduled",
+      };
+      console.log(appointmentData);
+      await apiClient.post(CREATE_APPOINTMENT_ROUTE, appointmentData);
 
       // Mock prescription generation
       const mockPrescription = {

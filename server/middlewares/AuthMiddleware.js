@@ -13,7 +13,11 @@ export const verifyToken = (req, res, next) => {
       return res.status(403).send("Token is not valid!");
     }
 
-    req.doctorId = payload.doctorId;
+    // Set both doctorId and user._id for backward compatibility
+    req.doctorId = payload.doctorId || payload.adminId;
+    req.user = {
+      _id: payload.doctorId || payload.adminId
+    };
     next();
   });
 };

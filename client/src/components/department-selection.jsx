@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import apiClient from "../lib/api-client";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import {
@@ -9,140 +10,77 @@ import {
   Stethoscope,
   Baby,
   ChevronRight,
+  Hospital,
+  Syringe,
+  Dna,
+  Microscope,
+  PlusCircle,
 } from "lucide-react";
+import { ALL_DOCTORS_ROUTE } from "../utils/constants";
 
-// Mock data for departments and doctors
-export const departments = [
-  {
-    id: "cardiology",
-    name: "Cardiology",
-    icon: Heart,
-    description: "Heart and cardiovascular system",
-    image: "/placeholder.svg?height=200&width=300",
-    doctors: [
-      {
-        id: "doc1",
-        name: "Dr. John Smith",
-        specialization: "Cardiologist",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-      {
-        id: "doc2",
-        name: "Dr. Emily Johnson",
-        specialization: "Cardiac Surgeon",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-  },
-  {
-    id: "neurology",
-    name: "Neurology",
-    icon: Brain,
-    description: "Brain and nervous system",
-    image: "/placeholder.svg?height=200&width=300",
-    doctors: [
-      {
-        id: "doc3",
-        name: "Dr. Michael Brown",
-        specialization: "Neurologist",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-      {
-        id: "doc4",
-        name: "Dr. Sarah Davis",
-        specialization: "Neurosurgeon",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-  },
-  {
-    id: "orthopedics",
-    name: "Orthopedics",
-    icon: Bone,
-    description: "Bones, joints, and muscles",
-    image: "/placeholder.svg?height=200&width=300",
-    doctors: [
-      {
-        id: "doc5",
-        name: "Dr. Robert Wilson",
-        specialization: "Orthopedic Surgeon",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-      {
-        id: "doc6",
-        name: "Dr. Jennifer Lee",
-        specialization: "Sports Medicine",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-  },
-  {
-    id: "ophthalmology",
-    name: "Ophthalmology",
-    icon: Eye,
-    description: "Eye care and vision",
-    image: "/placeholder.svg?height=200&width=300",
-    doctors: [
-      {
-        id: "doc7",
-        name: "Dr. David Miller",
-        specialization: "Ophthalmologist",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-      {
-        id: "doc8",
-        name: "Dr. Lisa Chen",
-        specialization: "Eye Surgeon",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-  },
-  {
-    id: "general",
-    name: "General Medicine",
-    icon: Stethoscope,
-    description: "General health and wellness",
-    image: "/placeholder.svg?height=200&width=300",
-    doctors: [
-      {
-        id: "doc9",
-        name: "Dr. James Taylor",
-        specialization: "General Physician",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-      {
-        id: "doc10",
-        name: "Dr. Patricia Moore",
-        specialization: "Family Medicine",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-  },
-  {
-    id: "pediatrics",
-    name: "Pediatrics",
-    icon: Baby,
-    description: "Child healthcare",
-    image: "/placeholder.svg?height=200&width=300",
-    doctors: [
-      {
-        id: "doc11",
-        name: "Dr. Thomas Anderson",
-        specialization: "Pediatrician",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-      {
-        id: "doc12",
-        name: "Dr. Nancy White",
-        specialization: "Child Specialist",
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-  },
-];
+const specializationIcons = {
+  Cardiology: Heart,
+  Neurology: Brain,
+  Orthopedics: Bone,
+  Ophthalmology: Eye,
+  "General Medicine": Stethoscope,
+  Pediatrics: Baby,
+  Dermatology: Syringe,
+  Oncology: PlusCircle,
+  Pathology: Microscope,
+  Genetics: Dna,
+  // Add more specializations and their respective icons here
+};
 
 export default function DepartmentSelection({ onSelect }) {
+  const [departments, setDepartments] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchDoctors = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.get(ALL_DOCTORS_ROUTE);
+      const fetchedDoctors = res.data.doctors || [];
+      setDoctors(fetchedDoctors);
+
+      // Dynamically create departments based on doctor specializations
+      const uniqueSpecializations = [...new Set(fetchedDoctors.map(doc => doc.specialization))];
+      const dynamicDepartments = uniqueSpecializations.map(specialization => ({
+        id: specialization.toLowerCase().replace(/\s+/g, ''),
+        name: specialization,
+        icon: specializationIcons[specialization] || Hospital, // Default icon if not found
+        description: `Doctors specializing in ${specialization}`, // Generic description
+        image: "/placeholder.svg?height=200&width=300", // Placeholder image
+      }));
+      setDepartments(dynamicDepartments);
+
+    } catch (err) {
+      setError("Failed to load doctors");
+      console.error("Error fetching doctors:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  const filteredDoctors = selectedDepartment
+    ? doctors.filter(doctor => doctor.specialization === selectedDepartment)
+    : [];
+
+  if (loading) {
+    return <div className="text-center">Loading departments and doctors...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-red-500">{error}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -154,7 +92,7 @@ export default function DepartmentSelection({ onSelect }) {
               <Card
                 key={dept.id}
                 className="cursor-pointer hover:shadow-xl transition-all duration-300 border-none shadow-lg overflow-hidden department-card"
-                onClick={() => setSelectedDepartment(dept.id)}
+                onClick={() => setSelectedDepartment(dept.name)}
               >
                 <div className="h-36 relative">
                   <img
@@ -199,24 +137,19 @@ export default function DepartmentSelection({ onSelect }) {
           </div>
 
           <div className="grid gap-4">
-            {departments
-              .find((d) => d.id === selectedDepartment)
-              ?.doctors.map((doctor) => (
+            {filteredDoctors.length === 0 ? (
+              <div className="text-center text-gray-500">No doctors found in this department.</div>
+            ) : (
+              filteredDoctors.map((doctor) => (
                 <Card
-                  key={doctor.id}
+                  key={doctor.id || doctor._id}
                   className="cursor-pointer hover:shadow-xl transition-all duration-300 border-none shadow-md"
-                  onClick={() =>
-                    onSelect(
-                      departments.find((d) => d.id === selectedDepartment)
-                        ?.name || "",
-                      doctor.id
-                    )
-                  }
+                  onClick={() => onSelect(selectedDepartment, doctor.id || doctor._id)}
                 >
                   <CardContent className="p-4 flex items-center">
                     <div className="relative h-16 w-16 rounded-full overflow-hidden mr-4">
                       <img
-                        src={doctor.image || "/placeholder.svg"}
+                        src={doctor.img || "/placeholder.svg"}
                         alt={doctor.name}
                         className="object-cover w-full h-full"
                       />
@@ -232,7 +165,8 @@ export default function DepartmentSelection({ onSelect }) {
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
+              ))
+            )}
           </div>
         </div>
       )}

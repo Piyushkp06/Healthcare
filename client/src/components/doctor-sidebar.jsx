@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 import {
@@ -19,23 +19,34 @@ import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { cn } from "../lib/utils";
+import { HOST, DOCTOR_LOGOUT_ROUTE } from "../utils/constants";
 
 const navigation = [
-  { name: "Dashboard", href: "/doctor/dashboard", icon: Home },
-  { name: "Appointments", href: "/doctor/appointments", icon: Calendar },
-  { name: "Patients", href: "/doctor/patients", icon: Users },
-  { name: "Prescriptions", href: "/doctor/prescriptions", icon: ClipboardList },
-  { name: "Settings", href: "/doctor/settings", icon: Settings },
+  { name: "Dashboard", href: "/doctor/dashboard", icon: Home, key: "dashboard" },
+  { name: "Appointments", href: "/doctor/appointments", icon: Calendar, key: "appointments" },
+  { name: "Patients", href: "/doctor/patients", icon: Users, key: "patients" },
+  { name: "Prescriptions", href: "/doctor/prescriptions", icon: ClipboardList, key: "prescriptions" },
+  { name: "Settings", href: "/doctor/settings", icon: Settings, key: "settings" },
 ];
 
 export default function DoctorSidebar({ setActiveView, activeView, doctor }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Update active view based on current path
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const currentNav = navigation.find(nav => nav.href === currentPath);
+    if (currentNav) {
+      setActiveView(currentNav.key);
+    }
+  }, [location.pathname, setActiveView]);
 
   const handleLogout = async () => {
     try {
       await axios.post(
-        `${HOST}/api/doctorAuth/logout`,
+        `${HOST}/${DOCTOR_LOGOUT_ROUTE}`,
         {},
         { withCredentials: true }
       );
@@ -74,13 +85,15 @@ export default function DoctorSidebar({ setActiveView, activeView, doctor }) {
             <Button
               key={item.name}
               variant="ghost"
-              className={`w-full justify-start gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+              className={cn(
+                "w-full justify-start gap-3 px-3 py-2 rounded-md text-sm transition-colors",
                 isActive
                   ? "bg-blue-100 text-blue-900"
                   : "text-gray-700 hover:bg-gray-100"
-              }`}
+              )}
               onClick={() => {
                 setActiveView(item.key);
+                navigate(item.href);
                 setOpen(false);
               }}
             >
@@ -107,26 +120,24 @@ export default function DoctorSidebar({ setActiveView, activeView, doctor }) {
 
   return (
     <>
-      {/* Mobile sidebar */}
-      <div className="lg:hidden">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 left-4"
-            >
-              <Menu className="h-6 w-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
-            <SidebarContent />
-          </SheetContent>
-        </Sheet>
-      </div>
+      {/* Mobile Sidebar */}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden fixed top-4 left-4 z-50"
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="p-0">
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:block w-64 border-r bg-white">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex w-64 flex-col border-r bg-white">
         <SidebarContent />
       </div>
     </>

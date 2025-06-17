@@ -17,9 +17,7 @@ import {
 } from "../../components/ui/tabs";
 import VoiceRegistration from "../../components/voice-registration";
 import PatientForm from "../../components/patient-form";
-import DepartmentSelection, {
-  departments,
-} from "../../components/department-selection";
+import DepartmentSelection from "../../components/department-selection";
 import Navbar from "../../components/navbar";
 
 export default function FrontdeskPage() {

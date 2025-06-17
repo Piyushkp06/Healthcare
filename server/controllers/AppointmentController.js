@@ -2,42 +2,43 @@ import { ApiError } from "../utils/ApiError.js";
 import Appointment from "../models/AppointmentModel.js";
 import Patient from "../models/PatientModel.js";
 import Doctor from "../models/DoctorModel.js";
+import Admin from "../models/AdminModel.js";
 
 // Create a new appointment
 export const createAppointment = async (req, res, next) => {
   try {
-    const { doctor, appointmentTime, reason } = req.body;
-    const patient = req.user._id; // Get patient ID from authenticated user
+    const { patientId, doctorId, date, status, reason = "" } = req.body;
 
     // Validate doctor existence
-    const doctorExists = await Doctor.findById(doctor);
+    const doctorExists = await Doctor.findById(doctorId);
     if (!doctorExists) {
       throw new ApiError(404, "Doctor not found");
     }
 
     // Validate patient existence
-    const patientExists = await Patient.findById(patient);
+    const patientExists = await Patient.findById(patientId);
     if (!patientExists) {
       throw new ApiError(404, "Patient not found");
     }
 
     const newAppointment = new Appointment({
-      patient,
-      doctor,
-      appointmentTime,
-      reason
+      patient: patientId,
+      doctor: doctorId,
+      appointmentTime: date,
+      status,
+      reason,
     });
 
     await newAppointment.save();
 
     // Populate the appointment with patient and doctor details
     const populatedAppointment = await Appointment.findById(newAppointment._id)
-      .populate("patient", "firstName lastName email age gender")
+      .populate("patient", "name phone age gender")
       .populate("doctor", "name specialization email");
 
-    return res.status(201).json({ 
-      message: "Appointment created successfully", 
-      appointment: populatedAppointment 
+    return res.status(201).json({
+      message: "Appointment created successfully",
+      appointment: populatedAppointment,
     });
   } catch (error) {
     console.log(error);
@@ -45,28 +46,59 @@ export const createAppointment = async (req, res, next) => {
   }
 };
 
-// Get all appointments (optionally filter by doctor or patient)
-export const getAppointments = async (req, res, next) => {
+// Get all appointments for admin
+export const getAdminAppointments = async (req, res, next) => {
   try {
-    const { doctor, patient } = req.query;
+    const { doctor, patient, status } = req.query;
     const filter = {};
     
-    // If user is a doctor, only show their appointments
-    if (req.user.role === 'doctor') {
-      filter.doctor = req.user._id;
+    // Check if user is admin by looking up in Admin collection
+    const admin = await Admin.findById(req.user._id);
+    if (!admin) {
+      throw new ApiError(403, "Not authorized to view all appointments");
     }
-    // If user is a patient, only show their appointments
-    else if (req.user.role === 'patient') {
-      filter.patient = req.user._id;
-    }
-    // If specific doctor or patient is requested (for admin)
-    else {
-      if (doctor) filter.doctor = doctor;
-      if (patient) filter.patient = patient;
+
+    // Apply filters if provided
+    if (status && status !== 'all') {
+      filter.status = status;
     }
 
     const appointments = await Appointment.find(filter)
-      .populate("patient", "firstName lastName email age gender")
+      .populate("patient", "name phone age gender")
+      .populate("doctor", "name specialization email")
+      .sort({ appointmentTime: -1 });
+
+    // Apply name-based filtering after population
+    let filteredAppointments = appointments;
+    if (doctor) {
+      filteredAppointments = filteredAppointments.filter(appointment => 
+        appointment.doctor.name.toLowerCase().includes(doctor.toLowerCase())
+      );
+    }
+    if (patient) {
+      filteredAppointments = filteredAppointments.filter(appointment => 
+        appointment.patient.name.toLowerCase().includes(patient.toLowerCase())
+      );
+    }
+
+    return res.status(200).json({ appointments: filteredAppointments });
+  } catch (error) {
+    console.log(error);
+    next(new ApiError(500, "Failed to fetch appointments"));
+  }
+};
+
+// Get appointments for a specific doctor
+export const getDoctorAppointments = async (req, res, next) => {
+  try {
+    // Check if user is doctor by looking up in Doctor collection
+    const doctor = await Doctor.findById(req.user._id);
+    if (!doctor) {
+      throw new ApiError(403, "Not authorized to view doctor appointments");
+    }
+
+    const appointments = await Appointment.find({ doctor: req.user._id })
+      .populate("patient", "name phone age gender")
       .populate("doctor", "name specialization email")
       .sort({ appointmentTime: -1 });
 
@@ -82,7 +114,7 @@ export const getAppointmentById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const appointment = await Appointment.findById(id)
-      .populate("patient", "firstName lastName email age gender")
+      .populate("patient", "name phone age gender")
       .populate("doctor", "name specialization email");
 
     if (!appointment) {
@@ -90,11 +122,14 @@ export const getAppointmentById = async (req, res, next) => {
     }
 
     // Check if user has permission to view this appointment
-    if (req.user.role === 'doctor' && appointment.doctor._id.toString() !== req.user._id.toString()) {
+    const doctor = await Doctor.findById(req.user._id);
+    const admin = await Admin.findById(req.user._id);
+    
+    if (doctor && appointment.doctor._id.toString() !== req.user._id.toString()) {
       throw new ApiError(403, "Not authorized to view this appointment");
     }
-    if (req.user.role === 'patient' && appointment.patient._id.toString() !== req.user._id.toString()) {
-      throw new ApiError(403, "Not authorized to view this appointment");
+    if (!admin && !doctor) {
+      throw new ApiError(403, "Not authorized to view appointments");
     }
 
     return res.status(200).json({ appointment });
@@ -117,11 +152,14 @@ export const updateAppointment = async (req, res, next) => {
     }
 
     // Check if user has permission to update this appointment
-    if (req.user.role === 'doctor' && appointment.doctor.toString() !== req.user._id.toString()) {
+    const doctor = await Doctor.findById(req.user._id);
+    const admin = await Admin.findById(req.user._id);
+    
+    if (doctor && appointment.doctor.toString() !== req.user._id.toString()) {
       throw new ApiError(403, "Not authorized to update this appointment");
     }
-    if (req.user.role === 'patient' && appointment.patient.toString() !== req.user._id.toString()) {
-      throw new ApiError(403, "Not authorized to update this appointment");
+    if (!admin && !doctor) {
+      throw new ApiError(403, "Not authorized to update appointments");
     }
 
     // Update the appointment
@@ -130,7 +168,7 @@ export const updateAppointment = async (req, res, next) => {
       update,
       { new: true }
     )
-      .populate("patient", "firstName lastName email age gender")
+      .populate("patient", "name phone age gender")
       .populate("doctor", "name specialization email");
 
     return res.status(200).json({ 
@@ -155,11 +193,14 @@ export const deleteAppointment = async (req, res, next) => {
     }
 
     // Check if user has permission to delete this appointment
-    if (req.user.role === 'doctor' && appointment.doctor.toString() !== req.user._id.toString()) {
+    const doctor = await Doctor.findById(req.user._id);
+    const admin = await Admin.findById(req.user._id);
+    
+    if (doctor && appointment.doctor.toString() !== req.user._id.toString()) {
       throw new ApiError(403, "Not authorized to delete this appointment");
     }
-    if (req.user.role === 'patient' && appointment.patient.toString() !== req.user._id.toString()) {
-      throw new ApiError(403, "Not authorized to delete this appointment");
+    if (!admin && !doctor) {
+      throw new ApiError(403, "Not authorized to delete appointments");
     }
 
     await Appointment.findByIdAndDelete(id);
