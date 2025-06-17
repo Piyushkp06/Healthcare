@@ -58,18 +58,69 @@ export const viewPatients = async (req, res) => {
     const { doctorId, specialization } = req.query;
     let query = {};
 
-    if (doctorId) query = { doctorId };
-    else if (specialization) query = { specialization };
-    else throw new ApiError(400, "Doctor ID or specialization required");
+    if (doctorId) {
+      const doctor = await Doctor.findOne({ doctorId });
+      if (!doctor) {
+        throw new ApiError(404, "Doctor not found");
+      }
+      query = { doctorId: doctor.doctorId };
+    } else if (specialization) {
+      const doctors = await Doctor.find({ specialization });
+      const doctorIds = doctors.map(doc => doc.doctorId);
+      query = { doctorId: { $in: doctorIds } };
+    }
 
-    const doctors = await Doctor.find(query);
-    const doctorIds = doctors.map(doc => doc._id);
+    const patients = await Patient.find(query)
+      .populate({
+        path: 'history',
+        populate: {
+          path: 'doctorId',
+          select: 'name specialization'
+        }
+      });
 
-    const patients = await Patient.find({ assignedDoctor: { $in: doctorIds } }).populate("assignedDoctor");
-    return res.status(200).json({ patients });
+    // Add doctor details to each patient
+    const patientsWithDoctorDetails = await Promise.all(patients.map(async (patient) => {
+      const doctor = await Doctor.findOne({ doctorId: patient.doctorId });
+      return {
+        ...patient.toObject(),
+        doctorName: doctor ? doctor.name : 'Not Assigned',
+        doctorSpecialization: doctor ? doctor.specialization : 'Not Assigned'
+      };
+    }));
+
+    return res.status(200).json({ patients: patientsWithDoctorDetails });
   } catch (error) {
     console.error(error);
     throw new ApiError(500, "Internal Server Error");
+  }
+};
+
+export const getAllPatients = async (req, res) => {
+  try {
+    const patients = await Patient.find()
+      .populate({
+        path: 'history',
+        populate: {
+          path: 'doctorId',
+          select: 'name specialization'
+        }
+      });
+
+    // Add doctor details to each patient
+    const patientsWithDoctorDetails = await Promise.all(patients.map(async (patient) => {
+      const doctor = await Doctor.findOne({ doctorId: patient.doctorId });
+      return {
+        ...patient.toObject(),
+        doctorName: doctor ? doctor.name : 'Not Assigned',
+        doctorSpecialization: doctor ? doctor.specialization : 'Not Assigned'
+      };
+    }));
+
+    return res.status(200).json({ patients: patientsWithDoctorDetails });
+  } catch (error) {
+    console.error(error);
+    throw new ApiError(500, "Failed to fetch patients");
   }
 };
 
