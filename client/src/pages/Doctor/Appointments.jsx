@@ -1,9 +1,24 @@
 import { useState, useEffect } from "react";
-import { HOST, GET_DOCTOR_APPOINTMENTS_ROUTE, DELETE_APPOINTMENT_ROUTE } from "../../utils/constants";
+import {
+  HOST,
+  GET_DOCTOR_APPOINTMENTS_ROUTE,
+  DELETE_APPOINTMENT_ROUTE,
+} from "../../utils/constants";
 import { Button } from "../../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { Badge } from "../../components/ui/badge";
 import { Separator } from "../../components/ui/separator";
 import { Calendar, Clock, User, AlertCircle, RefreshCw } from "lucide-react";
@@ -16,7 +31,7 @@ export default function Appointments() {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     patient: "",
-    status: "all"
+    status: "all",
   });
 
   const fetchAppointments = async () => {
@@ -36,7 +51,9 @@ export default function Appointments() {
 
   const handleDelete = async (appointmentId) => {
     try {
-      await apiClient.delete(DELETE_APPOINTMENT_ROUTE.replace(":id", appointmentId));
+      await apiClient.delete(
+        DELETE_APPOINTMENT_ROUTE.replace(":id", appointmentId)
+      );
       toast.success("Appointment deleted successfully");
       fetchAppointments();
     } catch (error) {
@@ -46,14 +63,15 @@ export default function Appointments() {
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const filteredAppointments = appointments.filter(appointment => {
+  const filteredAppointments = appointments.filter((appointment) => {
     if (!appointment?.patient) return false;
-    const patientName = (appointment.patient.name || '').toLowerCase().trim();
+    const patientName = (appointment.patient.name || "").toLowerCase().trim();
     const matchesPatient = patientName.includes(filters.patient.toLowerCase());
-    const matchesStatus = filters.status === "all" || appointment.status === filters.status;
+    const matchesStatus =
+      filters.status === "all" || appointment.status === filters.status;
     return matchesPatient && matchesStatus;
   });
 
@@ -155,21 +173,28 @@ export default function Appointments() {
                     <div className="flex items-center min-w-[200px]">
                       <User className="h-4 w-4 mr-2 text-gray-500" />
                       <span className="font-medium">
-                        {appointment?.patient ? 
-                          appointment.patient.name || 'Unknown Patient' :
-                          'Unknown Patient'
-                        }
+                        {appointment?.patient
+                          ? appointment.patient.name || "Unknown Patient"
+                          : "Unknown Patient"}
                       </span>
                     </div>
                     <Separator orientation="vertical" className="h-6" />
                     <div className="flex items-center min-w-[180px]">
                       <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                      <span>{new Date(appointment.appointmentTime).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(
+                          appointment.appointmentTime
+                        ).toLocaleDateString()}
+                      </span>
                     </div>
                     <Separator orientation="vertical" className="h-6" />
                     <div className="flex items-center min-w-[150px]">
                       <Clock className="h-4 w-4 mr-2 text-gray-500" />
-                      <span>{new Date(appointment.appointmentTime).toLocaleTimeString()}</span>
+                      <span>
+                        {new Date(
+                          appointment.appointmentTime
+                        ).toLocaleTimeString()}
+                      </span>
                     </div>
                     <Separator orientation="vertical" className="h-6" />
                     <Badge className={getStatusColor(appointment.status)}>
@@ -191,4 +216,4 @@ export default function Appointments() {
       )}
     </div>
   );
-} 
+}
