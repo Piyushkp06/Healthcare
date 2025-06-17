@@ -1,0 +1,13 @@
+requests
+beautifulsoup4
+nltk
+python-dotenv
+numpy 
+asyncio
+flask
+regex
+gemini
+sqlite3
+httpx
+
+
