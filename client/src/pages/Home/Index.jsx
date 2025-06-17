@@ -26,7 +26,7 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section id="home" className="pt-32 pb-20 hero-pattern overflow-hidden">
+      <section id="home" className="pt-32 pb-60 hero-pattern overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center">
             <div className="lg:w-1/2 lg:pr-12 mb-10 lg:mb-0">
