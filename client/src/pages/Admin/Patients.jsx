@@ -8,7 +8,7 @@ import {
 } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Search, Trash2, History, User } from "lucide-react";
+import { Search, Trash2, History, User, Filter, AlertCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "../../components/ui/avatar";
 import {
   Dialog,
@@ -24,7 +24,7 @@ import apiClient from "../../lib/api-client";
 import {
   VIEW_PATIENTS_ROUTE,
   DELETE_PATIENT_ROUTE,
-  GET_PATIENT_BY_ID_ROUTE,
+  GET_PATIENT_HISTORY_ROUTE,
 } from "../../utils/constants";
 import { useToast } from "../../components/ui/use-toast";
 import {
@@ -44,11 +44,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog";
+import { Badge } from "../../components/ui/badge";
+import { ScrollArea } from "../../components/ui/scroll-area";
 
 export default function Patients() {
   const [patients, setPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [patientHistory, setPatientHistory] = useState([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [patientToDelete, setPatientToDelete] = useState(null);
@@ -58,9 +61,7 @@ export default function Patients() {
 
   const fetchPatients = async () => {
     try {
-  //    console.log("Fetching patients from:", VIEW_PATIENTS_ROUTE);
       const response = await apiClient.get(VIEW_PATIENTS_ROUTE);
-    //  console.log("API Response:", response.data);
       setPatients(response.data.patients || []);
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -73,7 +74,6 @@ export default function Patients() {
   };
 
   useEffect(() => {
-    console.log("Component mounted, fetching patients...");
     fetchPatients();
   }, []);
 
@@ -97,13 +97,30 @@ export default function Patients() {
     }
   };
 
-  const handleViewPatientHistory = async (patientId) => {
+  const handleViewPatientHistory = async (patient) => {
     try {
-      const response = await apiClient.get(GET_PATIENT_BY_ID_ROUTE.replace(':id', patientId));
-      setSelectedPatient(response.data);
-      setIsHistoryOpen(true);
+      setSelectedPatient(patient);
+      const response = await apiClient.get(GET_PATIENT_HISTORY_ROUTE(patient._id));
+      console.log("Patient history response:", response.data);
+      
+      if (response.data.prescriptions) {
+        setPatientHistory(response.data.prescriptions);
+        setIsHistoryOpen(true);
+        toast({
+          title: "Success",
+          description: "Patient history loaded successfully",
+        });
+      } else {
+        console.error("No prescriptions found in response:", response.data);
+        setPatientHistory([]);
+        toast({
+          title: "Info",
+          description: "No prescription history found for this patient",
+        });
+      }
     } catch (error) {
       console.error("Error fetching patient history:", error);
+      setPatientHistory([]);
       toast({
         title: "Error",
         description: "Failed to fetch patient history",
@@ -112,8 +129,66 @@ export default function Patients() {
     }
   };
 
+  const renderPatientHistory = (history) => {
+    if (!history || history.length === 0) {
+      return <div className="text-gray-500">No visit history available</div>;
+    }
+
+    return (
+      <ScrollArea className="h-[400px] pr-4">
+        <div className="space-y-6">
+          {history.map((prescription, index) => (
+            <div key={index} className="border-b pb-6 last:border-b-0">
+              <div className="flex items-center justify-between mb-4">
+                <div className="font-medium text-lg">
+                  Visit Date: {new Date(prescription.createdAt).toLocaleDateString()}
+                </div>
+                <Badge variant="outline">
+                  {prescription.status || "Completed"}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Doctor</p>
+                  <p>{prescription.doctorId?.name || "Unknown"}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Specialization</p>
+                  <p>{prescription.doctorId?.specialization || "Unknown"}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm font-medium text-gray-500">Diagnosis</p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {prescription.symptoms?.map((symptom, idx) => (
+                      <Badge key={idx} variant="secondary">
+                        {symptom}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm font-medium text-gray-500">Prescription</p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {prescription.medicines?.map((medicine, idx) => (
+                      <Badge key={idx} variant="outline">
+                        {medicine.name} ({medicine.dosage})
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm font-medium text-gray-500">Notes</p>
+                  <p className="mt-1">{prescription.notes || "No additional notes"}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    );
+  };
+
   const filteredPatients = patients.filter((patient) => {
-    //console.log("Filtering patients:", patients);
     const matchesSearch =
       patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       patient.doctorName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -126,29 +201,6 @@ export default function Patients() {
   });
 
   const uniqueDoctors = [...new Set(patients.map((p) => p.doctorName))].filter(Boolean);
-
-  const renderPatientHistory = (history) => {
-    if (!history || history.length === 0) {
-      return <div className="text-gray-500">No visit history available</div>;
-    }
-
-    return (
-      <div className="space-y-4">
-        {history.map((visit, index) => (
-          <div key={index} className="border-b pb-4">
-            <div className="font-medium">
-              Visit Date: {new Date(visit.createdAt).toLocaleDateString()}
-            </div>
-            <div>Doctor: {visit.doctorId?.name || "Unknown"}</div>
-            <div>Specialization: {visit.doctorId?.specialization || "Unknown"}</div>
-            <div>Diagnosis: {visit.symptoms?.join(", ") || "None"}</div>
-            <div>Prescription: {visit.medicines?.map(m => `${m.name} (${m.dosage})`).join(", ") || "None"}</div>
-            <div>Notes: {visit.notes || "No additional notes"}</div>
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   return (
     <div className="space-y-6">
@@ -198,7 +250,7 @@ export default function Patients() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPatients.map((patient) => (
-            <Card key={patient._id || patient.id} className="hover:shadow-lg transition-shadow duration-200">
+            <Card key={patient._id} className="hover:shadow-lg transition-shadow duration-200">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -262,7 +314,7 @@ export default function Patients() {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => handleViewPatientHistory(patient._id)}
+                  onClick={() => handleViewPatientHistory(patient)}
                 >
                   <History className="h-4 w-4 mr-2" />
                   View History
@@ -298,14 +350,45 @@ export default function Patients() {
         open={isHistoryOpen}
         onOpenChange={(open) => {
           setIsHistoryOpen(open);
-          if (!open) setSelectedPatient(null);
+          if (!open) {
+            setSelectedPatient(null);
+            setPatientHistory([]);
+          }
         }}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>Patient History - {selectedPatient?.name}</DialogTitle>
+            <DialogDescription>
+              View complete medical history and visit records
+            </DialogDescription>
           </DialogHeader>
-          {selectedPatient && renderPatientHistory(selectedPatient.history)}
+          {selectedPatient && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Patient Name</p>
+                  <p className="font-medium">{selectedPatient.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Age</p>
+                  <p>{selectedPatient.age} years</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Gender</p>
+                  <p>{selectedPatient.gender}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Phone</p>
+                  <p>{selectedPatient.phone}</p>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Visit History</h3>
+                {renderPatientHistory(patientHistory)}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
