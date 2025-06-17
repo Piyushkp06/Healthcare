@@ -57,12 +57,12 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 to={link.href}
-                className={`text-sm font-medium transition-colors hover:text-blue-500 ${
+                className={`text-sm font-medium  hover:text-blue-700 hover:drop-shadow-[0_0_6px_rgba(59,130,246,0.7)] transition duration-200 ${
                   location.pathname === link.href || location.hash === link.href
                     ? "text-blue-500"
                     : isScrolled || location.pathname !== "/"
                     ? "text-gray-700"
-                    : "text-white"
+                    : "text-blue-500"
                 }`}
                 onClick={(e) => {
                   if (link.href.startsWith("#")) {
