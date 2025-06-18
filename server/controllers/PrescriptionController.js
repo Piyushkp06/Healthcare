@@ -1,5 +1,6 @@
 import Prescription from "../models/PrescriptionModel.js";
 import Patient from "../models/PatientModel.js";
+import Doctor from "../models/DoctorModel.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import PDFDocument from "pdfkit";
@@ -12,8 +13,29 @@ const __dirname = path.dirname(__filename);
 
 export const generatePrescription = async (req, res) => {
   try {
-    const { patientId, symptoms, medicines, notes } = req.body;
-    const doctorId = req.doctor._id;
+    const {
+      patientId,
+      symptoms,
+      diagnosis,
+      medicines,
+      holdMedicines,
+      emergencyInstructions,
+      criticalWarnings,
+      sideEffectsNote,
+      followUp,
+      rationale,
+      notes
+    } = req.body;
+    const doctorId = req.doctorId;
+    if (!doctorId) {
+      return res.status(401).send("Doctor not authenticated!");
+    }
+
+    // Fetch doctor details
+    const doctor = await Doctor.findById(doctorId);
+    if (!doctor) {
+      return res.status(404).send("Doctor not found!");
+    }
 
     // Validate patient exists
     const patient = await Patient.findById(patientId);
@@ -21,12 +43,21 @@ export const generatePrescription = async (req, res) => {
       throw new ApiError(404, "Patient not found");
     }
 
-    // Create prescription
+    // Create prescription with all new fields
     const prescription = await Prescription.create({
-      doctorId,
+      doctorId: doctor._id,
+      doctorName: doctor.name,
+      doctorSpecialization: doctor.specialization,
       patient: patientId,
       symptoms,
+      diagnosis,
       medicines,
+      holdMedicines,
+      emergencyInstructions,
+      criticalWarnings,
+      sideEffectsNote,
+      followUp,
+      rationale,
       notes
     });
 
@@ -62,92 +93,106 @@ export const generatePrescriptionPDF = async (req, res) => {
     const { prescriptionId } = req.params;
 
     const prescription = await Prescription.findById(prescriptionId)
-      .populate("patient")
-      .populate("doctorId");
+      .populate("patient");
 
     if (!prescription) {
       throw new ApiError(404, "Prescription not found");
     }
 
-    // Create PDF
-    const doc = new PDFDocument();
-    const pdfPath = path.join(__dirname, `../temp/prescription_${prescriptionId}.pdf`);
-
-    // Ensure temp directory exists
-    if (!fs.existsSync(path.join(__dirname, "../temp"))) {
-      fs.mkdirSync(path.join(__dirname, "../temp"));
+    // Paths
+    const tempDir = path.join(__dirname, "../temp");
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir);
     }
+    const pdfPath = path.join(tempDir, `prescription_${prescriptionId}.pdf`);
 
-    // Pipe PDF to file
-    doc.pipe(fs.createWriteStream(pdfPath));
+    // PDF Setup
+    const doc = new PDFDocument();
+    const writeStream = fs.createWriteStream(pdfPath);
+    doc.pipe(writeStream);
 
-    // Add content to PDF
-    doc.fontSize(20).text("Medical Prescription", { align: "center" });
+    // Register custom font
+    doc.registerFont("Helvetica-Bold", "Helvetica-Bold");
+
+    // Add border
+    doc.rect(50, 50, 500, 700).stroke();
+
+    // Header
+    doc.font("Helvetica-Bold").fontSize(24).fillColor("#0000FF").text("Medical Prescription", { align: "center" });
     doc.moveDown();
 
     // Doctor Info
-    doc.fontSize(12).text("Doctor Information:");
-    doc.fontSize(10).text(`Name: Dr. ${prescription.doctorId.name}`);
-    doc.text(`Specialization: ${prescription.doctorId.specialization}`);
+    doc.font("Helvetica-Bold").fontSize(14).fillColor("#FF0000").text("Doctor Information:", { underline: true });
+    doc.font("Helvetica").fontSize(12).fillColor("#000000").text(`Name: Dr. ${prescription.doctorName}`);
+    doc.text(`Specialization: ${prescription.doctorSpecialization}`);
     doc.moveDown();
 
     // Patient Info
-    doc.fontSize(12).text("Patient Information:");
-    doc.fontSize(10).text(`Name: ${prescription.patient.name}`);
+    doc.font("Helvetica-Bold").fontSize(14).fillColor("#FF0000").text("Patient Information:", { underline: true });
+    doc.font("Helvetica").fontSize(12).fillColor("#000000").text(`Name: ${prescription.patient.name}`);
     doc.text(`Age: ${prescription.patient.age}`);
     doc.text(`Gender: ${prescription.patient.gender}`);
     doc.moveDown();
 
     // Date
-    doc.fontSize(12).text("Date:");
-    doc.fontSize(10).text(new Date(prescription.createdAt).toLocaleDateString());
+    doc.font("Helvetica-Bold").fontSize(14).fillColor("#FF0000").text("Date:", { underline: true });
+    doc.font("Helvetica").fontSize(12).fillColor("#000000").text(new Date(prescription.createdAt).toLocaleDateString());
     doc.moveDown();
 
     // Symptoms
-    doc.fontSize(12).text("Symptoms:");
+    doc.font("Helvetica-Bold").fontSize(14).fillColor("#FF0000").text("Symptoms:", { underline: true });
     prescription.symptoms.forEach(symptom => {
-      doc.fontSize(10).text(`• ${symptom}`);
+      doc.font("Helvetica").fontSize(12).fillColor("#000000").text(`• ${symptom}`);
     });
     doc.moveDown();
 
     // Medicines
-    doc.fontSize(12).text("Prescribed Medicines:");
+    doc.font("Helvetica-Bold").fontSize(14).fillColor("#FF0000").text("Prescribed Medicines:", { underline: true });
     prescription.medicines.forEach(medicine => {
-      doc.fontSize(10).text(`• ${medicine.name} - ${medicine.dosage} (${medicine.frequency})`);
+      doc.font("Helvetica").fontSize(12).fillColor("#000000").text(`• ${medicine.name} - ${medicine.dosage} (${medicine.frequency})`);
     });
     doc.moveDown();
 
     // Notes
     if (prescription.notes) {
-      doc.fontSize(12).text("Additional Notes:");
-      doc.fontSize(10).text(prescription.notes);
+      doc.font("Helvetica-Bold").fontSize(14).fillColor("#FF0000").text("Additional Notes:", { underline: true });
+      doc.font("Helvetica").fontSize(12).fillColor("#000000").text(prescription.notes);
+      doc.moveDown();
     }
 
-    // Add signature line
+    // Hold Medicines
+    if (prescription.holdMedicines?.length > 0) {
+      doc.font("Helvetica-Bold").fontSize(14).fillColor("#FF0000").text("Hold Medicines:", { underline: true });
+      prescription.holdMedicines.forEach(med => {
+        doc.font("Helvetica").fontSize(12).fillColor("#000000").text(`• ${med.name} - ${med.dosage} (Reason: ${med.reason})`);
+      });
+      doc.moveDown();
+    }
+
+    // Signature
     doc.moveDown(2);
-    doc.fontSize(10).text("Doctor's Signature: _________________", { align: "right" });
+    doc.font("Helvetica").fontSize(12).fillColor("#000000").text("Doctor's Signature: _________________", { align: "right" });
 
-    // Finalize PDF
-    doc.end();
+    // Footer
+    doc.font("Helvetica").fontSize(10).fillColor("#000000").text("Generated on: " + new Date().toLocaleString(), { align: "center" });
 
-    // Wait for PDF to be generated
-    await new Promise((resolve) => {
-      doc.on("end", resolve);
+    doc.end(); // finalize
+
+    // ✅ Wait for stream to finish
+    await new Promise((resolve, reject) => {
+      writeStream.on("finish", resolve);
+      writeStream.on("error", reject);
     });
 
-    // Send PDF file
+    // Send file
     res.download(pdfPath, `prescription_${prescriptionId}.pdf`, (err) => {
-      if (err) {
-        console.error("Error sending PDF:", err);
-      }
-      // Clean up: delete the temporary PDF file
+      if (err) console.error("Error sending PDF:", err);
       fs.unlink(pdfPath, (unlinkErr) => {
-        if (unlinkErr) {
-          console.error("Error deleting temporary PDF:", unlinkErr);
-        }
+        if (unlinkErr) console.error("Error deleting PDF:", unlinkErr);
       });
     });
   } catch (error) {
+    console.error("PDF Generation Error:", error);
     throw new ApiError(error.statusCode || 500, error.message);
   }
-}; 
+};

@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Badge } from "./ui/badge";
-import { X, Download, Loader2 } from "lucide-react";
+import { X, Download, Loader2, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { toast } from "sonner";
 import axios from "axios";
@@ -28,6 +28,9 @@ export default function PrescriptionGenerator({
   const [medicalReport, setMedicalReport] = useState("");
   const [loading, setLoading] = useState(false);
   const [prescription, setPrescription] = useState(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savedPrescriptionId, setSavedPrescriptionId] = useState(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const handleAddSymptom = () => {
     if (newSymptom.trim()) {
@@ -113,6 +116,66 @@ export default function PrescriptionGenerator({
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSavePrescription = async () => {
+    if (!prescription) return;
+    try {
+      const prescriptionData = {
+        patientId: patient._id,
+        symptoms,
+        diagnosis: prescription.assessment || "",
+        medicines: prescription.medications?.map(med => ({
+          name: med.medication,
+          dosage: med.dosage,
+          frequency: med.frequency || "",
+          instructions: med.instructions || ""
+        })) || [],
+        holdMedicines: prescription.holdMedicines || [],
+        emergencyInstructions: prescription.emergencyInstructions || "",
+        criticalWarnings: prescription.considerations || [],
+        sideEffectsNote: prescription.sideEffectsNote || "",
+        followUp: prescription.follow_up || "",
+        rationale: prescription.rationale || "",
+        notes: medicalReport // or use a separate notes field if you have one
+      };
+      const response = await axios.post(
+        `${HOST}/${GENERATE_PRESCRIPTION_API_ROUTE}`,
+        prescriptionData,
+        { withCredentials: true }
+      );
+      toast.success("Prescription saved to patient history!");
+      setIsSaved(true);
+      setSavedPrescriptionId(response.data.data.prescription._id);
+    } catch (error) {
+      toast.error("Failed to save prescription to backend.");
+      console.error(error);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!savedPrescriptionId) return;
+    setDownloadingPdf(true);
+    try {
+      const response = await axios.get(
+        `${HOST}/${GENERATE_PRESCRIPTION_PDF_ROUTE(savedPrescriptionId)}`,
+        {
+          responseType: "blob",
+          withCredentials: true,
+        }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `prescription_${savedPrescriptionId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      toast.error("Failed to download PDF");
+    } finally {
+      setDownloadingPdf(false);
     }
   };
 
@@ -318,6 +381,31 @@ export default function PrescriptionGenerator({
 
       {/* Prescription Results */}
       {renderPrescriptionResult()}
+
+      {prescription && !isSaved && (
+        <Button className="mt-4 w-full bg-green-600 hover:bg-green-700" onClick={handleSavePrescription}>
+          Save Prescription to Patient History
+        </Button>
+      )}
+      {prescription && isSaved && (
+        <>
+          <div className="mt-4 w-full flex items-center justify-center gap-2 text-green-700 font-semibold bg-green-50 border border-green-200 rounded p-3">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            Saved!
+          </div>
+          <Button
+            className="mt-4 w-full bg-blue-600 hover:bg-blue-700"
+            onClick={handleDownloadPdf}
+            disabled={downloadingPdf}
+          >
+            {downloadingPdf ? (
+              <span className="flex items-center"><Loader2 className="h-4 w-4 animate-spin mr-1" />Downloading PDF...</span>
+            ) : (
+              <span className="flex items-center"><Download className="h-4 w-4 mr-1" />Download PDF</span>
+            )}
+          </Button>
+        </>
+      )}
     </div>
   );
 }

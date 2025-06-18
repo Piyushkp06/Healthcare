@@ -6,8 +6,8 @@ const prescriptionRoutes = Router();
 
 prescriptionRoutes.use(verifyToken);
 
-prescriptionRoutes.post('/generate', generatePrescription);
-prescriptionRoutes.get('/patient/:patientId', getPatientPrescriptions);
-prescriptionRoutes.get('/pdf/:prescriptionId', generatePrescriptionPDF);
+prescriptionRoutes.post('/generate', verifyToken, generatePrescription);
+prescriptionRoutes.get('/patient/:patientId', verifyToken, getPatientPrescriptions);
+prescriptionRoutes.get('/pdf/:prescriptionId', verifyToken, generatePrescriptionPDF);
 
 export default prescriptionRoutes; 

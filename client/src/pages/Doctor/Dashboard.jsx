@@ -17,7 +17,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "../../components/ui/tabs";
-import { Calendar, Clock, Stethoscope, User } from "lucide-react";
+import { Calendar, Clock, Stethoscope, User, Download, Loader2 } from "lucide-react";
 import DoctorSidebar from "../../components/doctor-sidebar";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -26,6 +26,8 @@ import {
   GET_APPOINTMENTS_ROUTE,
   GET_PATIENT_HISTORY_ROUTE,
   GENERATE_PRESCRIPTION_ROUTE,
+  GET_PATIENT_PRESCRIPTIONS_ROUTE,
+  GENERATE_PRESCRIPTION_PDF_ROUTE
 } from "../../utils/constants";
 import PrescriptionGenerator from "../../components/PrescriptionGenerator";
 import Appointments from "./Appointments";
@@ -46,6 +48,9 @@ export default function DoctorDashboard() {
     frequency: "",
   });
   const [prescriptionNotes, setPrescriptionNotes] = useState("");
+  const [prescriptionHistory, setPrescriptionHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [downloadingPdfId, setDownloadingPdfId] = useState(null);
 
   // Mock data for testing
   const mockAppointments = [
@@ -215,6 +220,30 @@ export default function DoctorDashboard() {
     setActiveView("prescriptions");
   };
 
+  const handleDownloadPdf = async (prescriptionId) => {
+    setDownloadingPdfId(prescriptionId);
+    try {
+      const response = await axios.get(
+        `${HOST}/${GENERATE_PRESCRIPTION_PDF_ROUTE(prescriptionId)}`,
+        {
+          responseType: "blob",
+          withCredentials: true,
+        }
+      );
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `prescription_${prescriptionId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (error) {
+      alert("Failed to download PDF");
+    } finally {
+      setDownloadingPdfId(null);
+    }
+  };
+
   useEffect(() => {
     const fetchDoctor = async () => {
       try {
@@ -246,6 +275,18 @@ export default function DoctorDashboard() {
     fetchDoctor();
     fetchAppointments();
   }, []);
+
+  useEffect(() => {
+    const patient = selectedPatient;
+    if (!patient || !patient._id) return;
+    setHistoryLoading(true);
+    axios.get(`${HOST}/${GET_PATIENT_HISTORY_ROUTE(patient._id)}`, { withCredentials: true })
+      .then(res => {
+        setPrescriptionHistory(res.data.prescriptions || []);
+      })
+      .catch(() => setPrescriptionHistory([]))
+      .finally(() => setHistoryLoading(false));
+  }, [selectedPatient]);
 
   const renderDashboardView = () => (
     <>
@@ -771,81 +812,98 @@ export default function DoctorDashboard() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Patient History</h3>
             {patient ? (
-              <ScrollArea className="h-[60vh] pr-4">
-                <div className="space-y-6">
-                  {patient.prescriptions?.length > 0 ? (
-                    patient.prescriptions.map((prescription, index) => (
-                      <Card key={prescription._id || index} className="border-l-4 border-l-blue-500">
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-lg">Prescription #{index + 1}</CardTitle>
-                              <span className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                                <Clock className="h-3 w-3" />
-                                {new Date(prescription.createdAt || prescription.date).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <Badge variant="secondary">{prescription.status || 'Completed'}</Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            <div>
-                              <h4 className="text-sm font-medium mb-1">Doctor</h4>
-                              <span>{prescription.doctorId?.name || "Unknown"}</span>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium mb-1">Specialization</h4>
-                              <span>{prescription.doctorId?.specialization || "Unknown"}</span>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium mb-1">Diagnosis</h4>
-                              <div className="flex flex-wrap gap-2 mt-1">
-                                {prescription.symptoms?.map((symptom, idx) => (
-                                  <Badge key={idx} variant="secondary">{symptom}</Badge>
-                                ))}
+              historyLoading ? (
+                <div className="text-center text-gray-500 py-8">Loading history...</div>
+              ) : (
+                <ScrollArea className="h-[60vh] pr-4">
+                  <div className="space-y-6">
+                    {prescriptionHistory.length > 0 ? (
+                      prescriptionHistory.map((prescription, index) => (
+                        <Card key={prescription._id || index} className="border-l-4 border-l-blue-500">
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-lg">Prescription #{index + 1}</CardTitle>
+                                <span className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                  <Clock className="h-3 w-3" />
+                                  {new Date(prescription.createdAt || prescription.date).toLocaleDateString()}
+                                </span>
                               </div>
+                              <Badge variant="secondary">{prescription.status || 'Completed'}</Badge>
                             </div>
-                            <div>
-                              <h4 className="text-sm font-medium mb-1">Medications</h4>
-                              <div className="space-y-1">
-                                {prescription.medicines?.length > 0 ? (
-                                  prescription.medicines.map((medicine, medIndex) => (
-                                    <div key={medIndex} className="flex items-center gap-2 text-sm">
-                                      <span>{medicine.name}</span>
-                                      <span className="text-gray-500">-</span>
-                                      <span className="text-gray-600">{medicine.dosage}</span>
-                                      {medicine.frequency && (
-                                        <>
-                                          <span className="text-gray-500">-</span>
-                                          <span className="text-gray-600">{medicine.frequency}</span>
-                                        </>
-                                      )}
-                                    </div>
-                                  ))
-                                ) : (
-                                  <span className="text-sm text-gray-500">No medications prescribed</span>
-                                )}
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              <div>
+                                <h4 className="text-sm font-medium mb-1">Doctor</h4>
+                                <span>{prescription.doctorId?.name || "Unknown"}</span>
                               </div>
-                            </div>
-                            {prescription.notes && (
-                              <>
-                                <Separator />
-                                <div>
-                                  <h4 className="text-sm font-medium mb-1">Notes</h4>
-                                  <span className="text-sm text-gray-600">{prescription.notes}</span>
+                              <div>
+                                <h4 className="text-sm font-medium mb-1">Specialization</h4>
+                                <span>{prescription.doctorId?.specialization || "Unknown"}</span>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-medium mb-1">Diagnosis</h4>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {prescription.symptoms?.map((symptom, idx) => (
+                                    <Badge key={idx} variant="secondary">{symptom}</Badge>
+                                  ))}
                                 </div>
-                              </>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-32 text-gray-500">No prescription history found</div>
-                  )}
-                </div>
-              </ScrollArea>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-medium mb-1">Medications</h4>
+                                <div className="space-y-1">
+                                  {prescription.medicines?.length > 0 ? (
+                                    prescription.medicines.map((medicine, medIndex) => (
+                                      <div key={medIndex} className="flex items-center gap-2 text-sm">
+                                        <span>{medicine.name}</span>
+                                        <span className="text-gray-500">-</span>
+                                        <span className="text-gray-600">{medicine.dosage}</span>
+                                        {medicine.frequency && (
+                                          <>
+                                            <span className="text-gray-500">-</span>
+                                            <span className="text-gray-600">{medicine.frequency}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <span className="text-sm text-gray-500">No medications prescribed</span>
+                                  )}
+                                </div>
+                              </div>
+                              {prescription.notes && (
+                                <>
+                                  <Separator />
+                                  <div>
+                                    <h4 className="text-sm font-medium mb-1">Notes</h4>
+                                    <span className="text-sm text-gray-600">{prescription.notes}</span>
+                                  </div>
+                                </>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="ml-2"
+                                onClick={() => handleDownloadPdf(prescription._id)}
+                                disabled={downloadingPdfId === prescription._id}
+                              >
+                                {downloadingPdfId === prescription._id ? (
+                                  <span className="flex items-center"><Loader2 className="h-4 w-4 animate-spin mr-1" />Downloading...</span>
+                                ) : (
+                                  <span className="flex items-center"><Download className="h-4 w-4 mr-1" />Download PDF</span>
+                                )}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-32 text-gray-500">No prescription history found</div>
+                    )}
+                  </div>
+                </ScrollArea>
+              )
             ) : (
               <div className="text-center text-gray-500 py-8">
                 Select a patient to view their history

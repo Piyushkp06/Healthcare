@@ -1,4 +1,3 @@
-
 import { ApiError } from "../utils/ApiError.js";
 import Appointment from "../models/AppointmentModel.js";
 import Patient from "../models/PatientModel.js";
@@ -28,7 +27,7 @@ export const getPatientHistory = async (req, res, next) => {
     }
 
     const prescriptions = await Prescription.find({ patient: patientId })
-      .populate("doctorId", "name email")
+      .populate("doctorId", "name specialization")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({ patient, prescriptions });
