@@ -9,5 +9,6 @@ regex
 gemini
 sqlite3
 httpx
+uvicorn
 
 
