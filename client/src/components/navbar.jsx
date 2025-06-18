@@ -46,7 +46,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent transition-transform duration-200 hover:rotate-[3deg]">
               MediCare+
             </span>
           </Link>
@@ -100,7 +100,7 @@ export default function Navbar() {
                       ? "outline"
                       : "secondary"
                   }
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 hover:bg-blue-100 transition duration-200 ease-in-out hover:shadow-lg hover:-translate-y-[1px]"
                 >
                   Staff Login <ChevronDown className="h-4 w-4" />
                 </Button>
@@ -109,7 +109,7 @@ export default function Navbar() {
                 <DropdownMenuItem asChild>
                   <Link
                     to="/login?role=doctor"
-                    className="w-full cursor-pointer"
+                    className="w-full cursor-pointer "
                   >
                     Doctor Login
                   </Link>
@@ -117,7 +117,7 @@ export default function Navbar() {
                 <DropdownMenuItem asChild>
                   <Link
                     to="/login?role=admin"
-                    className="w-full cursor-pointer"
+                    className="w-full cursor-pointer "
                   >
                     Admin Login
                   </Link>
@@ -131,11 +131,11 @@ export default function Navbar() {
                   ? "default"
                   : "secondary"
               }
-              className={
-                location.pathname !== "/"
-                  ? "bg-blue-500 hover:bg-blue-600 text-white"
-                  : ""
-              }
+              className={`transition duration-200 ease-in-out hover:shadow-lg hover:-translate-y-[1px] ${
+                isScrolled || location.pathname !== "/"
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "hover:bg-blue-100 text-black"
+              }`}
             >
               <Link to="/frontdesk">Patient Registration</Link>
             </Button>

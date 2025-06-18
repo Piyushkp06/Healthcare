@@ -4,6 +4,9 @@ import { Card, CardContent } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import Navbar from "../../components/navbar";
 import VoiceRegistrationHome from "../../components/voice-registration-home";
+import { motion } from "framer-motion";
+import CountUp from "react-countup";
+
 import {
   Clock,
   Calendar,
@@ -20,65 +23,405 @@ import {
   User,
 } from "lucide-react";
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: {
+    opacity: 0,
+    y: 30,
+    scale: 0.95,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: [0.25, 0.25, 0.25, 0.75],
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    x: 50,
+    rotateY: -15,
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    rotateY: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.25, 0.25, 0.75],
+      delay: 0.3,
+    },
+  },
+};
+
+const statsVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const statItemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4 },
+  },
+};
+
+const floatingVariants = {
+  animate: {
+    y: [-10, 10, -10],
+    transition: {
+      duration: 6,
+      repeat: Infinity,
+      ease: "easeInOut",
+    },
+  },
+};
+
 export default function Home() {
   return (
     <>
       <Navbar />
 
       {/* Hero Section */}
-      <section id="home" className="pt-32 pb-60 hero-pattern overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-center">
-            <div className="lg:w-1/2 lg:pr-12 mb-10 lg:mb-0">
-              <Badge className="mb-4 bg-blue-100 text-blue-700 hover:bg-blue-100">
-                24/7 Healthcare Support
-              </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                Your Health Is Our Top Priority
-              </h1>
-              <p className="text-lg text-gray-600 mb-8">
+      <section
+        id="home"
+        className="min-h-screen flex items-center hero-pattern overflow-hidden pt-20 pb-16 lg:pt-24 lg:pb-20 relative"
+      >
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-400/30 to-cyan-400/30 rounded-full blur-3xl"
+            animate={{
+              x: [0, 100, 0],
+              y: [0, -50, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute -top-20 -right-20 w-60 h-60 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl"
+            animate={{
+              x: [0, -80, 0],
+              y: [0, 60, 0],
+              scale: [1, 0.8, 1],
+            }}
+            transition={{
+              duration: 15,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
+            }}
+          />
+          <motion.div
+            className="absolute bottom-20 left-1/4 w-72 h-72 bg-gradient-to-br from-cyan-300/25 to-blue-300/25 rounded-full blur-3xl"
+            animate={{
+              x: [0, -60, 0],
+              y: [0, -40, 0],
+              scale: [1, 1.3, 1],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 5,
+            }}
+          />
+        </div>
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {/* Left Content */}
+            <div className="lg:w-1/2 text-center lg:text-left">
+              <motion.div variants={itemVariants}>
+                <Badge className="mb-6 bg-blue-100 text-blue-700 hover:bg-blue-100 px-4 py-2 text-sm font-medium">
+                  24/7 Healthcare Support
+                </Badge>
+              </motion.div>
+
+              <motion.h1
+                className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 leading-tight"
+                variants={itemVariants}
+              >
+                <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent">
+                  Your Health Is Our Top Priority
+                </span>
+              </motion.h1>
+
+              <motion.p
+                className="text-lg sm:text-xl text-gray-500 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+                variants={itemVariants}
+              >
                 Experience seamless healthcare with our voice-enabled patient
                 registration system. Speak your symptoms, get matched with
                 specialists, and receive personalized care.
-              </p>
+              </motion.p>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="text-base">
-                  <Link to="/frontdesk">Register Now</Link>
-                </Button>
-                <Button size="lg" variant="outline" className="text-base">
-                  <Link to="/doctors">Find Doctors</Link>
-                </Button>
-              </div>
+              <motion.div
+                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12"
+                variants={itemVariants}
+              >
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    size="lg"
+                    className="text-base px-8 py-3 h-auto font-semibold"
+                  >
+                    <Link to="/frontdesk">Register Now</Link>
+                  </Button>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="text-base px-8 py-3 h-auto font-semibold"
+                  >
+                    <Link to="/doctors">Find Doctors</Link>
+                  </Button>
+                </motion.div>
+              </motion.div>
 
-              <div className="mt-12 grid grid-cols-3 gap-6">
-                <div className="stats-item text-center">
-                  <p className="text-3xl font-bold text-blue-600">24/7</p>
-                  <p className="text-sm text-gray-500">Support</p>
-                </div>
-                <div className="stats-item text-center">
-                  <p className="text-3xl font-bold text-blue-600">100+</p>
-                  <p className="text-sm text-gray-500">Specialists</p>
-                </div>
-                <div className="stats-item text-center">
-                  <p className="text-3xl font-bold text-blue-600">50k+</p>
-                  <p className="text-sm text-gray-500">Happy Patients</p>
-                </div>
-              </div>
+              <motion.div
+                className="grid grid-cols-3 gap-6 sm:gap-8"
+                variants={statsVariants}
+              >
+                <motion.div
+                  className="stats-item text-center"
+                  variants={statItemVariants}
+                  whileHover={{ scale: 1.1 }}
+                >
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-600 mb-1">
+                    <CountUp end={24} duration={2} />
+                    /7
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-500">Support</p>
+                </motion.div>
+
+                <motion.div
+                  className="stats-item text-center"
+                  variants={statItemVariants}
+                  whileHover={{ scale: 1.1 }}
+                >
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-600 mb-1">
+                    <CountUp end={100} duration={3} />+
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-500">
+                    Specialists
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  className="stats-item text-center"
+                  variants={statItemVariants}
+                  whileHover={{ scale: 1.1 }}
+                >
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-600 mb-1">
+                    <CountUp end={50000} duration={3} separator="," />+
+                  </p>
+                  <p className="text-sm sm:text-base text-gray-500">
+                    Happy Patients
+                  </p>
+                </motion.div>
+              </motion.div>
             </div>
 
-            <div className="lg:w-1/2 relative">
-              <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-                <h2 className="text-2xl font-bold mb-6 text-center">
-                  Voice Registration
-                </h2>
-                <VoiceRegistrationHome />
-              </div>
+            {/* Right Content - Enhanced Voice Registration Card */}
+            <div className="lg:w-1/2 w-full max-w-2xl mx-auto lg:mx-0">
+              <motion.div className="relative" variants={cardVariants}>
+                <motion.div
+                  className="bg-gradient-to-br from-white/95 to-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-8 sm:p-10 relative z-10 border border-white/20"
+                  whileHover={{
+                    y: -8,
+                    boxShadow:
+                      "0 25px 50px -12px rgba(59, 130, 246, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.1), 0 0 80px rgba(59, 130, 246, 0.3)",
+                    borderColor: "rgba(59, 130, 246, 0.3)",
+                  }}
+                  transition={{
+                    duration: 0.4,
+                    ease: "easeOut",
+                  }}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%)",
+                  }}
+                >
+                  {/* Glow effect overlay */}
+                  <motion.div
+                    className="absolute inset-0 rounded-3xl opacity-0 pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.05) 50%, rgba(59, 130, 246, 0.1) 100%)",
+                    }}
+                    whileHover={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
 
-              <div className="absolute -z-10 -top-10 -right-10 w-64 h-64 bg-blue-100 rounded-full opacity-50 blur-3xl"></div>
-              <div className="absolute -z-10 -bottom-10 -left-10 w-64 h-64 bg-cyan-100 rounded-full opacity-50 blur-3xl"></div>
+                  <motion.h2
+                    className="text-2xl sm:text-3xl font-bold mb-8 text-center text-gray-800 relative z-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.6 }}
+                  >
+                    Voice Registration
+                  </motion.h2>
+                  <motion.div
+                    className="relative z-10"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.7, duration: 0.6 }}
+                  >
+                    <VoiceRegistrationHome />
+                  </motion.div>
+                </motion.div>
+
+                {/* Enhanced Floating Background Elements with Smooth Glow */}
+                <motion.div
+                  className="absolute -z-10 -top-12 -right-12 w-56 h-56 sm:w-72 sm:h-72 rounded-full blur-3xl"
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(147, 197, 253, 0.3) 50%, rgba(59, 130, 246, 0.2) 100%)",
+                  }}
+                  animate={{
+                    scale: [1, 1.15, 1],
+                    opacity: [0.6, 0.8, 0.6],
+                    rotate: [0, 180, 360],
+                  }}
+                  transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  whileHover={{
+                    opacity: 0.9,
+                    scale: 1.2,
+                    transition: { duration: 1.2, ease: "easeOut" },
+                  }}
+                />
+                <motion.div
+                  className="absolute -z-10 -bottom-12 -left-12 w-56 h-56 sm:w-72 sm:h-72 rounded-full blur-3xl"
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, rgba(165, 243, 252, 0.3) 50%, rgba(6, 182, 212, 0.2) 100%)",
+                  }}
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 0.7, 0.5],
+                    rotate: [360, 180, 0],
+                  }}
+                  transition={{
+                    duration: 10,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 1,
+                  }}
+                  whileHover={{
+                    opacity: 0.8,
+                    scale: 1.25,
+                    transition: { duration: 1.2, ease: "easeOut" },
+                  }}
+                />
+                <motion.div
+                  className="absolute -z-10 top-1/2 -right-16 w-40 h-40 sm:w-48 sm:h-48 rounded-full blur-2xl"
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, rgba(236, 72, 153, 0.25) 50%, rgba(168, 85, 247, 0.15) 100%)",
+                  }}
+                  animate={{
+                    scale: [1, 1.3, 1],
+                    opacity: [0.4, 0.6, 0.4],
+                    x: [0, 10, 0],
+                    y: [0, -10, 0],
+                  }}
+                  transition={{
+                    duration: 12,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 2,
+                  }}
+                  whileHover={{
+                    opacity: 0.7,
+                    scale: 1.4,
+                    transition: { duration: 1.2, ease: "easeOut" },
+                  }}
+                />
+
+                {/* Additional smooth accent elements */}
+                <motion.div
+                  className="absolute -z-10 top-1/4 -left-8 w-32 h-32 rounded-full blur-xl"
+                  style={{
+                    background:
+                      "radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(59, 130, 246, 0.2) 50%, rgba(99, 102, 241, 0.1) 100%)",
+                  }}
+                  animate={{
+                    scale: [1, 1.4, 1],
+                    opacity: [0.3, 0.6, 0.3],
+                    rotate: [0, 360],
+                  }}
+                  transition={{
+                    duration: 15,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+
+                {/* Subtle pulsing overlay */}
+                <motion.div
+                  className="absolute -z-10 inset-0 rounded-3xl"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse at center, rgba(59, 130, 246, 0.05) 0%, transparent 70%)",
+                  }}
+                  animate={{
+                    opacity: [0.3, 0.6, 0.3],
+                    scale: [0.95, 1.05, 0.95],
+                  }}
+                  transition={{
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -400,9 +743,12 @@ export default function Home() {
       <section id="about" className="py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">About Us</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            We are dedicated to providing the best healthcare services with a
-            focus on patient well-being and advanced technology.
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            At <span className="text-blue-600 font-semibold">MediCare+</span>,
+            we are committed to delivering exceptional healthcare services
+            powered by cutting-edge technology and a compassionate approach. Our
+            mission is to make quality healthcare accessible and seamless for
+            everyone.
           </p>
         </div>
       </section>
@@ -435,7 +781,7 @@ export default function Home() {
                 <rect width="20" height="16" x="2" y="4" rx="2" />
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
-              <span className="text-gray-700">info@medicareplus.com</span>
+              <span className="text-gray-700">contact@medicare-plus.com</span>
             </div>
           </div>
         </div>
