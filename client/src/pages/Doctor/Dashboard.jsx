@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import { Button } from "../../components/ui/button";
 import {
@@ -29,6 +30,8 @@ import {
 import PrescriptionGenerator from "../../components/PrescriptionGenerator";
 import Appointments from "./Appointments";
 import Patients from "./Patients";
+import { ScrollArea } from "../../components/ui/scroll-area";
+import { Separator } from "../../components/ui/separator";
 
 export default function DoctorDashboard() {
   const [doctor, setDoctor] = useState(null);
@@ -110,6 +113,9 @@ export default function DoctorDashboard() {
 
   const [appointments, setAppointments] = useState(mockAppointments);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const handleSelectPatient = async (patient) => {
     try {
       // For mock data
@@ -175,8 +181,8 @@ export default function DoctorDashboard() {
       // For real data
       const prescriptionData = {
         patientId: selectedPatient._id,
-        symptoms: selectedPatient.symptoms,
-        medicines: selectedPatient.medications.map((med) => ({
+        symptoms: selectedPatient.symptoms || [],
+        medicines: (selectedPatient.medications || []).map((med) => ({
           name: med.name,
           dosage: med.dosage,
           frequency: med.frequency,
@@ -202,6 +208,11 @@ export default function DoctorDashboard() {
       console.error("Error generating prescription:", err);
       setError("Failed to generate prescription");
     }
+  };
+
+  const handleCreatePrescription = (patient) => {
+    setSelectedPatient(patient);
+    setActiveView("prescriptions");
   };
 
   useEffect(() => {
@@ -293,8 +304,7 @@ export default function DoctorDashboard() {
               .map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="p-4 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleSelectPatient(appointment)}
+                  className="p-4 hover:bg-gray-50"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -310,9 +320,18 @@ export default function DoctorDashboard() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Clock className="mr-1 h-4 w-4" />
-                      <span>{appointment.time}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Clock className="mr-1 h-4 w-4" />
+                        <span>{appointment.time}</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCreatePrescription(appointment)}
+                      >
+                        Create Prescription
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -703,124 +722,6 @@ export default function DoctorDashboard() {
     </div>
   );
 
-  const renderPrescriptionsView = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Prescriptions</h2>
-
-      {/* Patient Selection */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-lg font-semibold mb-4">Select Patient</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {appointments.map((appointment) => (
-            <Card
-              key={appointment.id}
-              className={`cursor-pointer transition-colors ${
-                selectedPatient?.id === appointment.id
-                  ? "border-blue-500 bg-blue-50"
-                  : ""
-              }`}
-              onClick={() => handleSelectPatient(appointment)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-blue-100 p-3 rounded-full">
-                    <User className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{appointment.patientName}</h3>
-                    <p className="text-sm text-gray-500">
-                      {appointment.age} years, {appointment.gender}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Prescription Generator */}
-        {selectedPatient ? (
-          <PrescriptionGenerator
-            patient={selectedPatient}
-            onPrescriptionGenerated={handleGeneratePrescription}
-          />
-        ) : (
-          <div className="text-center text-gray-500 py-8">
-            Select a patient to generate a prescription
-          </div>
-        )}
-
-        {/* Previous Prescriptions */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Previous Prescriptions</h3>
-          {selectedPatient ? (
-            <div className="space-y-4">
-              {selectedPatient.prescriptions?.map((prescription, index) => (
-                <Card key={index} className="shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="text-sm text-gray-500">
-                      {new Date(prescription.createdAt).toLocaleDateString()}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">
-                          Symptoms
-                        </h4>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {prescription.symptoms?.map((symptom, idx) => (
-                            <Badge key={idx} variant="secondary">
-                              {symptom}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">
-                          Medications
-                        </h4>
-                        <div className="space-y-2 mt-2">
-                          {prescription.medicines?.map((medicine, idx) => (
-                            <div key={idx} className="text-sm">
-                              <span className="font-medium">
-                                {medicine.name}
-                              </span>
-                              <span className="text-gray-500">
-                                {" "}
-                                - {medicine.dosage} ({medicine.frequency})
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {prescription.notes && (
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-500">
-                            Notes
-                          </h4>
-                          <p className="text-sm text-gray-700 mt-1">
-                            {prescription.notes}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-gray-500 py-8">
-              Select a patient to view their prescription history
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
   const renderSettingsView = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Settings</h2>
@@ -850,6 +751,112 @@ export default function DoctorDashboard() {
     </div>
   );
 
+  const renderPrescriptionsView = () => {
+    // Prefer patient from navigation state, fallback to selectedPatient
+    const patientFromNav = location.state?.patient;
+    const patient = patientFromNav || selectedPatient;
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">Prescriptions</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            {patient ? (
+              <PrescriptionGenerator patient={patient} />
+            ) : (
+              <div className="text-center text-gray-500 py-8">
+                Select a patient to generate a prescription
+              </div>
+            )}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Patient History</h3>
+            {patient ? (
+              <ScrollArea className="h-[60vh] pr-4">
+                <div className="space-y-6">
+                  {patient.prescriptions?.length > 0 ? (
+                    patient.prescriptions.map((prescription, index) => (
+                      <Card key={prescription._id || index} className="border-l-4 border-l-blue-500">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-lg">Prescription #{index + 1}</CardTitle>
+                              <span className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                <Clock className="h-3 w-3" />
+                                {new Date(prescription.createdAt || prescription.date).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <Badge variant="secondary">{prescription.status || 'Completed'}</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Doctor</h4>
+                              <span>{prescription.doctorId?.name || "Unknown"}</span>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Specialization</h4>
+                              <span>{prescription.doctorId?.specialization || "Unknown"}</span>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Diagnosis</h4>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {prescription.symptoms?.map((symptom, idx) => (
+                                  <Badge key={idx} variant="secondary">{symptom}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium mb-1">Medications</h4>
+                              <div className="space-y-1">
+                                {prescription.medicines?.length > 0 ? (
+                                  prescription.medicines.map((medicine, medIndex) => (
+                                    <div key={medIndex} className="flex items-center gap-2 text-sm">
+                                      <span>{medicine.name}</span>
+                                      <span className="text-gray-500">-</span>
+                                      <span className="text-gray-600">{medicine.dosage}</span>
+                                      {medicine.frequency && (
+                                        <>
+                                          <span className="text-gray-500">-</span>
+                                          <span className="text-gray-600">{medicine.frequency}</span>
+                                        </>
+                                      )}
+                                    </div>
+                                  ))
+                                ) : (
+                                  <span className="text-sm text-gray-500">No medications prescribed</span>
+                                )}
+                              </div>
+                            </div>
+                            {prescription.notes && (
+                              <>
+                                <Separator />
+                                <div>
+                                  <h4 className="text-sm font-medium mb-1">Notes</h4>
+                                  <span className="text-sm text-gray-600">{prescription.notes}</span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-32 text-gray-500">No prescription history found</div>
+                  )}
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="text-center text-gray-500 py-8">
+                Select a patient to view their history
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     if (loading) {
       return <div>Loading...</div>;
@@ -863,7 +870,7 @@ export default function DoctorDashboard() {
       case "dashboard":
         return renderDashboardView();
       case "appointments":
-        return <Appointments />;
+        return <Appointments onCreatePrescription={handleCreatePrescription} />;
       case "patients":
         return <Patients />;
       case "prescriptions":

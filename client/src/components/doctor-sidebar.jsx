@@ -93,7 +93,6 @@ export default function DoctorSidebar({ setActiveView, activeView, doctor }) {
               )}
               onClick={() => {
                 setActiveView(item.key);
-                navigate(item.href);
                 setOpen(false);
               }}
             >

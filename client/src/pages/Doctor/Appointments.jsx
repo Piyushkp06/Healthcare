@@ -21,11 +21,11 @@ import {
 } from "../../components/ui/select";
 import { Badge } from "../../components/ui/badge";
 import { Separator } from "../../components/ui/separator";
-import { Calendar, Clock, User, AlertCircle, RefreshCw } from "lucide-react";
+import { Calendar, Clock, User, AlertCircle, RefreshCw, FileText } from "lucide-react";
 import { toast } from "react-hot-toast";
 import apiClient from "../../lib/api-client";
 
-export default function Appointments() {
+export default function Appointments({ onCreatePrescription }) {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,6 +33,14 @@ export default function Appointments() {
     patient: "",
     status: "all",
   });
+
+  const handleCreatePrescription = (appointment) => {
+    if (onCreatePrescription && appointment.patient && appointment.patient._id) {
+      onCreatePrescription(appointment.patient);
+    } else {
+      toast.error("Patient information is missing or invalid.");
+    }
+  };
 
   const fetchAppointments = async () => {
     try {
@@ -201,13 +209,24 @@ export default function Appointments() {
                       {appointment.status}
                     </Badge>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(appointment._id)}
-                  >
-                    Delete
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCreatePrescription(appointment)}
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Create Prescription
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(appointment._id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
