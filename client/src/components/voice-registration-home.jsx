@@ -98,6 +98,8 @@ export default function VoiceRegistrationHome() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState("");
+  const [suggestedDepartment, setSuggestedDepartment] = useState("");
+  const [showSuggestion, setShowSuggestion] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const { toast } = useToast();
@@ -159,20 +161,14 @@ export default function VoiceRegistrationHome() {
 
         // Find matching department based on transcript
         const matchedDepartment = findMatchingDepartment(response.text);
+        setSuggestedDepartment(matchedDepartment);
+        setShowSuggestion(true);
+        setIsProcessing(false);
 
         toast({
-          title: "Voice Processed",
-          description: `Redirecting you to ${matchedDepartment} department.`,
+          title: "Voice Analyzed",
+          description: `AI suggests ${matchedDepartment} department based on your symptoms.`,
         });
-
-        // Redirect to frontdesk with the transcript and matched department
-        setTimeout(() => {
-          navigate(
-            `/frontdesk?transcript=${encodeURIComponent(
-              response.text
-            )}&department=${encodeURIComponent(matchedDepartment)}`
-          );
-        }, 1000);
       } else {
         throw new Error("Failed to transcribe audio");
       }
@@ -186,6 +182,20 @@ export default function VoiceRegistrationHome() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleAcceptSuggestion = () => {
+    navigate(
+      `/frontdesk?transcript=${encodeURIComponent(
+        transcript
+      )}&suggestedDepartment=${encodeURIComponent(
+        suggestedDepartment
+      )}&autoSuggest=true`
+    );
+  };
+
+  const handleChooseManually = () => {
+    navigate(`/frontdesk?transcript=${encodeURIComponent(transcript)}`);
   };
 
   return (
@@ -223,7 +233,7 @@ export default function VoiceRegistrationHome() {
           disabled={isProcessing}
         >
           {isProcessing ? (
-            <Loader2 className="h-10 w-10 text-primary-foreground" />
+            <Loader2 className="h-10 w-10 text-primary-foreground animate-spin" />
           ) : isRecording ? (
             <MicOff className="h-10 w-10 text-primary-foreground" />
           ) : (
@@ -236,15 +246,52 @@ export default function VoiceRegistrationHome() {
         {isRecording
           ? "Recording... Click to stop"
           : isProcessing
-          ? "Processing your voice..."
+          ? "AI is analyzing your voice..."
           : "Click the microphone to start recording"}
       </p>
 
-      {transcript && (
+      {transcript && !showSuggestion && (
         <Card className="mt-4 bg-blue-50 border-blue-200">
           <CardContent className="p-4">
             <h3 className="font-medium mb-2">We heard:</h3>
             <p className="text-gray-700 italic">"{transcript}"</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {showSuggestion && (
+        <Card className="mt-4 bg-green-50 border-green-200">
+          <CardContent className="p-4 space-y-4">
+            <div>
+              <h3 className="font-medium mb-2">We heard:</h3>
+              <p className="text-gray-700 italic mb-4">"{transcript}"</p>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg border border-green-300">
+              <h3 className="font-medium mb-2 text-green-800">
+                AI Recommendation:
+              </h3>
+              <p className="text-green-700 mb-4">
+                Based on your symptoms, we suggest the{" "}
+                <strong>{suggestedDepartment}</strong> department.
+              </p>
+
+              <div className="flex gap-3 flex-col sm:flex-row">
+                <Button
+                  onClick={handleAcceptSuggestion}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Accept Recommendation
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleChooseManually}
+                  className="border-green-600 text-green-600 hover:bg-green-50"
+                >
+                  Choose Department Manually
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
