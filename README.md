@@ -4,7 +4,7 @@
 
 A modern, full-stack healthcare management system designed to streamline hospital operations, enhance doctor and patient experiences, and leverage AI for smarter healthcare. Built with React, Node.js, Python, MongoDB, and Docker.
 
----
+
 
 ## 🚀 Features
 
@@ -76,8 +76,8 @@ Healthcare/
 ### 1. **Clone the Repository**
 
 ```bash
-git clone https://github.com/yourusername/healthcare-platform.git
-cd healthcare-platform
+git clone https://github.com/yourusername/Healthcare.git
+cd Healthcare
 ```
 
 ### 2. **Environment Variables**
