@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { Toaster } from "../src/components/ui/toaster";
+import { Toaster } from "./components/ui/toaster";
 import { motion } from "framer-motion";
 
 function App() {
