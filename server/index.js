@@ -23,14 +23,24 @@ const databaseUrl = process.env.DATABASE_URL;
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: process.env.ORIGIN ,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://healthcare-1-seven.vercel.app"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS: " + origin));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
 
 // Routes
 app.use("/api/adminAuth", adminAuthRoutes);
