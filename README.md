@@ -1,5 +1,5 @@
-<<<<<<< HEAD
-=======
+
+
 # MEDICARE+
 
 # 🏥 Healthcare Management Platform
