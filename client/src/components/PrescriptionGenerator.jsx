@@ -6,18 +6,19 @@ import { Badge } from "./ui/badge";
 import { X, Download, Loader2, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { toast } from "sonner";
+import apiClient from "../lib/api-client";
 import axios from "axios";
 import {
-  HOST,
   GENERATE_PRESCRIPTION_API_ROUTE,
   GENERATE_PRESCRIPTION_PDF_ROUTE,
-  FASTAPI_HOST,
+  SEND_PRESCRIPTION_SMS_ROUTE,
   PROCESS_CASE_API_ROUTE,
+  FASTAPI_HOST,
 } from "../utils/constants";
 
 // FastAPI backend configuration
-const FASTAPI_BASE_URL = "http://127.0.0.1:8000";
-const PROCESS_CASE_ENDPOINT = "/process_case/";
+const FASTAPI_BASE_URL = FASTAPI_HOST;
+const PROCESS_CASE_ENDPOINT = "/process_case/"; 
 
 export default function PrescriptionGenerator({
   patient,
@@ -31,6 +32,8 @@ export default function PrescriptionGenerator({
   const [isSaved, setIsSaved] = useState(false);
   const [savedPrescriptionId, setSavedPrescriptionId] = useState(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [sendingSms, setSendingSms] = useState(false);
+  const [smsSent, setSmsSent] = useState(false);
 
   const handleAddSymptom = () => {
     if (newSymptom.trim()) {
@@ -140,11 +143,7 @@ export default function PrescriptionGenerator({
         rationale: prescription.rationale || "",
         notes: medicalReport // or use a separate notes field if you have one
       };
-      const response = await axios.post(
-        `${HOST}/${GENERATE_PRESCRIPTION_API_ROUTE}`,
-        prescriptionData,
-        { withCredentials: true }
-      );
+      const response = await apiClient.post(GENERATE_PRESCRIPTION_API_ROUTE, prescriptionData);
       toast.success("Prescription saved to patient history!");
       setIsSaved(true);
       setSavedPrescriptionId(response.data.data.prescription._id);
@@ -158,13 +157,9 @@ export default function PrescriptionGenerator({
     if (!savedPrescriptionId) return;
     setDownloadingPdf(true);
     try {
-      const response = await axios.get(
-        `${HOST}/${GENERATE_PRESCRIPTION_PDF_ROUTE(savedPrescriptionId)}`,
-        {
-          responseType: "blob",
-          withCredentials: true,
-        }
-      );
+      const response = await apiClient.get(GENERATE_PRESCRIPTION_PDF_ROUTE(savedPrescriptionId), {
+        responseType: "blob",
+      });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -272,6 +267,11 @@ export default function PrescriptionGenerator({
         </CardContent>
       </Card>
     );
+  };
+
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return '';
+    return phone.startsWith('+') ? phone : `+${phone}`;
   };
 
   return (
@@ -404,6 +404,35 @@ export default function PrescriptionGenerator({
               <span className="flex items-center"><Download className="h-4 w-4 mr-1" />Download PDF</span>
             )}
           </Button>
+          <div className="mt-4 flex flex-col gap-2">
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700"
+              onClick={async () => {
+                if (!patient?.phone) {
+                  toast.error("No phone number found for this patient.");
+                  return;
+                }
+                setSendingSms(true);
+                try {
+                  const formattedPhone = formatPhoneNumber(patient.phone);
+                  await apiClient.post(SEND_PRESCRIPTION_SMS_ROUTE, {
+                    phone: formattedPhone,
+                    prescriptionId: savedPrescriptionId
+                  });
+                  setSmsSent(true);
+                  toast.success("Prescription sent via SMS!");
+                } catch (err) {
+                  toast.error("Failed to send SMS");
+                } finally {
+                  setSendingSms(false);
+                }
+              }}
+              style={{ backgroundColor: smsSent ? '#22c55e' : undefined }}
+              disabled={sendingSms || !patient?.phone || smsSent}
+            >
+              {smsSent ? "SMS Sent!" : (sendingSms ? "Sending..." : `Send via SMS${patient?.phone ? ` (${patient.phone})` : ''}`)}
+            </Button>
+          </div>
         </>
       )}
     </div>

@@ -2,7 +2,7 @@ import axios from "axios";
 import { HOST } from "@/utils/constants";
 
 const apiClient = axios.create({
-  baseURL: HOST,
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

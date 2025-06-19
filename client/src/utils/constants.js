@@ -1,4 +1,4 @@
-export const HOST = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
+export const HOST = import.meta.env.VITE_API_URL;
 
 export const ADMIN_AUTH_ROUTES = "api/adminAuth";
 export const ADMIN_LOGIN_ROUTE = `${ADMIN_AUTH_ROUTES}/login`;
@@ -30,6 +30,7 @@ export const GET_PATIENT_PRESCRIPTIONS_ROUTE = (patientId) =>
   `${PRESCRIPTION_ROUTES}/patient/${patientId}`;
 export const GENERATE_PRESCRIPTION_PDF_ROUTE = (prescriptionId) =>
   `${PRESCRIPTION_ROUTES}/pdf/${prescriptionId}`;
+export const SEND_PRESCRIPTION_SMS_ROUTE = `${PRESCRIPTION_ROUTES}/send-sms`;
 
 export const APPOINTMENT_ROUTES = "api/appointments";
 export const CREATE_APPOINTMENT_ROUTE = `${APPOINTMENT_ROUTES}/create-appointment`;
@@ -47,7 +48,7 @@ export const UPDATE_PATIENT_ROUTE = `${PATIENT_ROUTES}/update-patient/:id`;
 export const DELETE_PATIENT_ROUTE = `${PATIENT_ROUTES}/delete-patient/:id`;
 
 // FastAPI Backend Configuration
-export const FASTAPI_HOST = "http://127.0.0.1:8000";
+export const FASTAPI_HOST = "https://healthcare-tvfz.onrender.com";
 
 // API Routes
 export const PROCESS_CASE_API_ROUTE = "/process_case/";
