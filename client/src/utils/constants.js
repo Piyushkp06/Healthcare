@@ -1,4 +1,4 @@
-export const HOST = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
+export const HOST = import.meta.env.VITE_SERVER_URL;
 
 export const ADMIN_AUTH_ROUTES = "api/adminAuth";
 export const ADMIN_LOGIN_ROUTE = `${ADMIN_AUTH_ROUTES}/login`;

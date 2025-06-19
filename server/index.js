@@ -24,7 +24,6 @@ const databaseUrl = process.env.DATABASE_URL;
 app.use(express.json());
 app.use(cookieParser());
 const allowedOrigins = [
-  "http://localhost:5173",
   "https://healthcare-1-seven.vercel.app"
 ];
 
