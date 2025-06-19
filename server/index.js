@@ -24,7 +24,7 @@ const databaseUrl = process.env.DATABASE_URL;
 app.use(express.json());
 app.use(cookieParser());
 const allowedOrigins = [
-  "https://healthcare-1-seven.vercel.app"
+  "medicareplusss.vercel.app"
 ];
 
 app.use(cors({
