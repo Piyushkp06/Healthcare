@@ -77,41 +77,6 @@ export default function PatientForm({ doctorId }) {
     }
   };
 
-  const downloadPrescription = () => {
-    if (!prescriptionData) return;
-
-    const prescriptionText = `
-      MEDICAL PRESCRIPTION
-      
-      Patient: ${prescriptionData.patientName}
-      Doctor ID: ${prescriptionData.doctorId}
-      Date: ${new Date().toLocaleDateString()}
-      
-      Diagnosis: ${prescriptionData.diagnosis}
-      
-      Medications:
-      ${prescriptionData.medicines
-        .map((med) => `- ${med.name} ${med.dosage}, ${med.frequency}`)
-        .join("\n")}
-      
-      Notes:
-      ${prescriptionData.notes}
-    `;
-
-    const blob = new Blob([prescriptionText], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `prescription_${prescriptionData.patientName.replace(
-      /\s+/g,
-      "_"
-    )}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="space-y-6">
       {!prescriptionData ? (
@@ -212,13 +177,14 @@ export default function PatientForm({ doctorId }) {
             </p>
           </div>
 
-          <Button
-            onClick={downloadPrescription}
-            className="w-full flex items-center justify-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Download Prescription
-          </Button>
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-center">
+            <h3 className="text-lg font-medium text-blue-800">
+              Prescription Details
+            </h3>
+            <p className="text-blue-700">
+              The prescription will be sent to the given phone number via SMS.
+            </p>
+          </div>
 
           <Button
             variant="outline"

@@ -30,6 +30,7 @@
     "node-record-lpcm16": "^1.0.1",
     "pdfkit": "^0.17.1",
     "regex": "^6.0.1",
+    "twilio": "^5.7.1",
     "ws": "^8.18.2"
   },
   "devDependencies": {

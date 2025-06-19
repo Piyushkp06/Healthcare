@@ -30,6 +30,7 @@ export const GET_PATIENT_PRESCRIPTIONS_ROUTE = (patientId) =>
   `${PRESCRIPTION_ROUTES}/patient/${patientId}`;
 export const GENERATE_PRESCRIPTION_PDF_ROUTE = (prescriptionId) =>
   `${PRESCRIPTION_ROUTES}/pdf/${prescriptionId}`;
+export const SEND_PRESCRIPTION_SMS_ROUTE = `${PRESCRIPTION_ROUTES}/send-sms`;
 
 export const APPOINTMENT_ROUTES = "api/appointments";
 export const CREATE_APPOINTMENT_ROUTE = `${APPOINTMENT_ROUTES}/create-appointment`;
