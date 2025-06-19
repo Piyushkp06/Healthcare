@@ -24,7 +24,8 @@ const databaseUrl = process.env.DATABASE_URL;
 app.use(express.json());
 app.use(cookieParser());
 const allowedOrigins = [
-  "medicareplusss.vercel.app"
+  "http://localhost:5173",
+  "https://medicareplusss.vercel.app/doctors"
 ];
 
 app.use(cors({
