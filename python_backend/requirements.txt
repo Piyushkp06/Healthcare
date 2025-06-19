@@ -10,5 +10,7 @@ regex
 gemini
 httpx
 uvicorn
+ipython-cluster-helper==0.6.2
+
 
 
