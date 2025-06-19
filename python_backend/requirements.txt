@@ -7,7 +7,6 @@ asyncio
 flask
 regex
 gemini
-sqlite3
 httpx
 uvicorn
 
