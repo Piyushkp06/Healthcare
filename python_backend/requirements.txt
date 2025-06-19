@@ -12,3 +12,4 @@ uvicorn
 ipython-cluster-helper==0.6.2
 numpy
 pandas
+wheel
