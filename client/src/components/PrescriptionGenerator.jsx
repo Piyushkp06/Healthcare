@@ -9,17 +9,16 @@ import { toast } from "sonner";
 import apiClient from "../lib/api-client";
 import axios from "axios";
 import {
-  HOST,
   GENERATE_PRESCRIPTION_API_ROUTE,
   GENERATE_PRESCRIPTION_PDF_ROUTE,
   SEND_PRESCRIPTION_SMS_ROUTE,
-  FASTAPI_HOST,
   PROCESS_CASE_API_ROUTE,
+  FASTAPI_HOST,
 } from "../utils/constants";
 
 // FastAPI backend configuration
-const FASTAPI_BASE_URL = "http://127.0.0.1:8000";
-const PROCESS_CASE_ENDPOINT = "/process_case/";
+const FASTAPI_BASE_URL = FASTAPI_HOST;
+const PROCESS_CASE_ENDPOINT = "/process_case/"; 
 
 export default function PrescriptionGenerator({
   patient,
