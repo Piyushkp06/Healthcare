@@ -8,4 +8,4 @@ services:
       pip install --use-pep517 -r requirements.txt
 
 build:
-  pythonVersion: 3.10.13
+  pythonVersion: 3.9.19
