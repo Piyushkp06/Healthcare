@@ -11,6 +11,5 @@ gemini
 httpx
 uvicorn
 ipython-cluster-helper==0.6.2
-
-
-
+numpy==1.24.0
+pandas==1.5.3
