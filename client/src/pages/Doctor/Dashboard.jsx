@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../../lib/api-client";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { Button } from "../../components/ui/button";
@@ -130,10 +130,7 @@ export default function DoctorDashboard() {
       }
 
       // For real data
-      const res = await axios.get(
-        `${HOST}/${GET_PATIENT_HISTORY_ROUTE(patient._id)}`,
-        { withCredentials: true }
-      );
+      const res = await apiClient.get(`${GET_PATIENT_HISTORY_ROUTE(patient._id)}`);
       setSelectedPatient({
         ...patient,
         prescriptions: res.data.prescriptions,
@@ -195,8 +192,8 @@ export default function DoctorDashboard() {
         notes: prescriptionNotes,
       };
 
-      const res = await axios.post(
-        `${HOST}/${GENERATE_PRESCRIPTION_ROUTE}`,
+      const res = await apiClient.post(
+        `${GENERATE_PRESCRIPTION_ROUTE}`,
         prescriptionData,
         { withCredentials: true }
       );
@@ -223,8 +220,8 @@ export default function DoctorDashboard() {
   const handleDownloadPdf = async (prescriptionId) => {
     setDownloadingPdfId(prescriptionId);
     try {
-      const response = await axios.get(
-        `${HOST}/${GENERATE_PRESCRIPTION_PDF_ROUTE(prescriptionId)}`,
+      const response = await apiClient.get(
+        `${GENERATE_PRESCRIPTION_PDF_ROUTE(prescriptionId)}`,
         {
           responseType: "blob",
           withCredentials: true,
@@ -247,9 +244,7 @@ export default function DoctorDashboard() {
   useEffect(() => {
     const fetchDoctor = async () => {
       try {
-        const res = await axios.get(`${HOST}/${DOCTOR_INFO_ROUTE}`, {
-          withCredentials: true,
-        });
+        const res = await apiClient.get(`${DOCTOR_INFO_ROUTE}`);
         setDoctor(res.data);
       } catch (err) {
         console.error("Error fetching doctor info:", err);
@@ -259,9 +254,7 @@ export default function DoctorDashboard() {
 
     const fetchAppointments = async () => {
       try {
-        const res = await axios.get(`${HOST}/${GET_APPOINTMENTS_ROUTE}`, {
-          withCredentials: true,
-        });
+        const res = await apiClient.get(`${GET_APPOINTMENTS_ROUTE}`);
         // Combine mock data with real data
         setAppointments([...mockAppointments, ...res.data.appointments]);
         setLoading(false);
@@ -280,7 +273,7 @@ export default function DoctorDashboard() {
     const patient = selectedPatient;
     if (!patient || !patient._id) return;
     setHistoryLoading(true);
-    axios.get(`${HOST}/${GET_PATIENT_HISTORY_ROUTE(patient._id)}`, { withCredentials: true })
+    apiClient.get(`${GET_PATIENT_HISTORY_ROUTE(patient._id)}`)
       .then(res => {
         setPrescriptionHistory(res.data.prescriptions || []);
       })
