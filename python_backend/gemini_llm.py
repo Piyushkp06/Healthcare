@@ -11,7 +11,7 @@ load_dotenv()
 # from prompt import text # Uncomment if you have this file, otherwise define 'text' directly
 
 class GeminiLLM:
-    def __init__(self, api_key: str = "", model_name: str = "gemini-2.5-flash"):
+    def __init__(self, api_key: str = "", model_name: str = "gemini-2.0-flash"):
         self.api_key = api_key
         self.model_name = model_name
         self.base_url = "https://generativelanguage.googleapis.com/v1beta/models"
