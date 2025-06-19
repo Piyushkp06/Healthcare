@@ -4,7 +4,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Auth/Login";
 import AdminDashboard from "./pages/AdminDash/Dashboard";
 import DoctorDashboard from "./pages/Doctor/Dashboard";
-import FrontdeskPage from "./pages/Frontdesk/Index";
+import FrontdeskPage from "./pages/frontdesk/index";
 import AllDoctorsPage from "./pages/Doctors/Index";
 
 export const router = createBrowserRouter([
