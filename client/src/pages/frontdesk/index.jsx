@@ -20,14 +20,57 @@ import VoiceRegistration from "../../components/voice-registration";
 import PatientForm from "../../components/patient-form";
 import DepartmentSelection from "../../components/department-selection";
 import Navbar from "../../components/navbar";
-import { ALL_DOCTORS_ROUTE } from "../../utils/constants";
-import apiClient from "../../lib/api-client";
+
+// Mock departments data - replace with your actual data
+const departments = [
+  {
+    name: "Cardiology",
+    doctors: [
+      { id: 1, name: "Dr. Smith" },
+      { id: 2, name: "Dr. Johnson" },
+    ],
+  },
+  {
+    name: "Neurology",
+    doctors: [
+      { id: 3, name: "Dr. Brown" },
+      { id: 4, name: "Dr. Davis" },
+    ],
+  },
+  {
+    name: "Orthopedics",
+    doctors: [
+      { id: 5, name: "Dr. Wilson" },
+      { id: 6, name: "Dr. Miller" },
+    ],
+  },
+  {
+    name: "Ophthalmology",
+    doctors: [
+      { id: 7, name: "Dr. Garcia" },
+      { id: 8, name: "Dr. Martinez" },
+    ],
+  },
+  {
+    name: "General Medicine",
+    doctors: [
+      { id: 9, name: "Dr. Anderson" },
+      { id: 10, name: "Dr. Taylor" },
+    ],
+  },
+  {
+    name: "Pediatrics",
+    doctors: [
+      { id: 11, name: "Dr. Thomas" },
+      { id: 12, name: "Dr. Jackson" },
+    ],
+  },
+];
 
 export default function FrontdeskPage() {
   const [step, setStep] = useState("department");
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [doctors, setDoctors] = useState([]);
   const [initialTab, setInitialTab] = useState("voice");
   const [searchParams] = useSearchParams();
   const transcript = searchParams.get("transcript");
@@ -35,40 +78,24 @@ export default function FrontdeskPage() {
   const autoSuggest = searchParams.get("autoSuggest");
 
   useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const res = await apiClient.get(ALL_DOCTORS_ROUTE);
-        const fetchedDoctors = res.data.doctors || [];
-        setDoctors(fetchedDoctors);
-
-        // Handle different scenarios based on URL parameters
-        if (transcript) {
-          if (autoSuggest === "true" && suggestedDepartment) {
-            // User accepted AI suggestion - auto-select department and first doctor
-            const departmentDoctors = fetchedDoctors.filter(
-              (d) => d.specialization === suggestedDepartment
-            );
-            if (departmentDoctors.length > 0) {
-              setSelectedDepartment(suggestedDepartment);
-              setSelectedDoctor(departmentDoctors[0]._id); // Use doctor's ID
-              setStep("registration");
-              setInitialTab("voice");
-            } else {
-              // If no doctors found for suggested department, stay on selection
-              setStep("department");
-            }
-          } else {
-            // User chose to select manually - stay on department selection
-            setStep("department");
-          }
+    // Handle different scenarios based on URL parameters
+    if (transcript) {
+      if (autoSuggest === "true" && suggestedDepartment) {
+        // User accepted AI suggestion - auto-select department and first doctor
+        setSelectedDepartment(suggestedDepartment);
+        const departmentData = departments.find(
+          (d) => d.name === suggestedDepartment
+        );
+        if (departmentData && departmentData.doctors.length > 0) {
+          setSelectedDoctor(departmentData.doctors[0].id);
         }
-      } catch (err) {
-        console.error("Failed to fetch doctors:", err);
-        // Optionally, set an error state to show in the UI
+        setStep("registration");
+        setInitialTab("voice");
+      } else {
+        // User chose to select manually - stay on department selection but highlight suggestion
+        setStep("department");
       }
-    };
-
-    fetchDoctors();
+    }
   }, [transcript, suggestedDepartment, autoSuggest]);
 
   const handleDepartmentSelected = (department, doctorId) => {
