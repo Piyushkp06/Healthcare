@@ -1,3 +1,5 @@
+
+
 # MEDICARE+
 
 # 🏥 Healthcare Management Platform
@@ -203,3 +205,4 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Framer Motion](https://www.framer.com/motion/)
 
+>>>>>>> 0d58466a0de4bbad748e9e5d5ecb039558f31e8c
