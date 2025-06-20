@@ -277,7 +277,17 @@ export default function VoiceRegistration({ doctorId, initialTranscript }) {
         <p className="text-gray-600">
           The patient's information has been submitted.
         </p>
-        <Button onClick={resetForm}>Register Another Patient</Button>
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-center mt-4">
+          <h3 className="text-lg font-medium text-blue-800">
+            Prescription Details
+          </h3>
+          <p className="text-blue-700">
+            The prescription will be sent to the given phone number via SMS.
+          </p>
+        </div>
+        <Button onClick={resetForm} className="mt-4">
+          Register Another Patient
+        </Button>
       </div>
     );
   }
